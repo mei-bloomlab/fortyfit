@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  SIDECAR_INSTALL_COMMAND,
   classifySidecarPanel,
   sidecarHealthUrl,
   sidecarQrJsonUrl,
@@ -187,7 +188,7 @@ function WaitingForQr({ detail }: { detail: string }) {
       <p className="text-sm leading-6 text-muted-foreground">{detail}</p>
       <p className="text-sm leading-6 text-muted-foreground">
         Sidecar sudah nyala. Belum ada kode untuk di-scan. Buka halaman ini di
-        Chrome pada Mac yang menjalankan npm run openwa — bukan dari HP.
+        browser pada Mac yang menjalankan npm run openwa — bukan dari HP.
       </p>
     </div>
   );
@@ -199,8 +200,7 @@ function ReadyQr({ qrDataUrl, detail }: { qrDataUrl: string; detail: string }) {
       <p className="text-sm leading-6 text-muted-foreground">{detail}</p>
       <p className="text-sm leading-6 text-muted-foreground">
         Dari HP FortyFit buka WhatsApp → Setelan → Perangkat tertaut, lalu scan
-        kode ini. QR yang sama juga muncul di jendela Chrome yang dibuka sidecar
-        di Mac. Tidak perlu membaca terminal.
+        kode ini. Tidak ada jendela Chrome. Tidak perlu membaca terminal.
       </p>
       <div className="flex size-[280px] items-center justify-center rounded-xl bg-white p-3">
         {/* data URL from sidecar JSON — next/image cannot load 127.0.0.1 from Vercel */}
@@ -223,17 +223,16 @@ function SidecarUnreachableMessage({ sidecarUrl }: { sidecarUrl: string }) {
       <p>
         Browser ini tidak menjangkau sidecar di {sidecarUrl}. Itu terjadi kalau
         sidecar belum nyala, fetch localhost diblokir, atau halaman ini dibuka
-        dari HP — HP tidak melihat 127.0.0.1 di Mac. Buka Setting di Chrome pada
-        Mac yang menjalankan npm run openwa.
+        dari HP — HP tidak melihat 127.0.0.1 di Mac. Buka Setting di browser
+        pada Mac yang menjalankan npm run openwa.
       </p>
       <p>Di folder repo FortyFit, pada Mac studio, jalankan:</p>
       <pre className="overflow-x-auto rounded-xl border border-border/70 bg-muted/40 px-3 py-2 font-mono text-xs text-foreground">
-        {`npm install @open-wa/wa-automate --no-save
-npm run openwa`}
+        {SIDECAR_INSTALL_COMMAND}
       </pre>
       <p>
-        Biarkan terminal terbuka. Kalau TimeoutError sebelum QR, hapus folder
-        _IGNORE_fortyfit di repo lalu jalankan npm run openwa lagi.
+        Biarkan terminal terbuka. Kalau sesi rusak, hapus folder _IGNORE_baileys
+        di repo lalu jalankan npm run openwa lagi.
       </p>
     </div>
   );

@@ -6,6 +6,7 @@ import test from "node:test";
 import {
   DEFAULT_SIDECAR_URL,
   QR_WAITING_COPY,
+  SIDECAR_INSTALL_COMMAND,
   browserSidecarUrl,
   classifySidecarPanel,
   sidecarHealthUrl,
@@ -58,8 +59,8 @@ test("panel treats health 200 without QR as waiting, not sidecar down", () => {
   });
   assert.equal(waiting.kind, "waiting");
   if (waiting.kind === "waiting") {
-    assert.match(waiting.detail, /WhatsApp Web/);
-    assert.match(waiting.detail, /Chrome minta update/);
+    assert.match(waiting.detail, /Baileys/);
+    assert.match(waiting.detail, /Tidak ada jendela Chrome/);
     assert.equal(waiting.detail.includes(QR_WAITING_COPY), true);
   }
 
@@ -83,6 +84,12 @@ test("panel treats health 200 without QR as waiting, not sidecar down", () => {
   assert.equal(ready.kind, "ready");
 });
 
+test("sidecar install is Baileys --no-save, not OpenWA or Chrome", () => {
+  assert.match(SIDECAR_INSTALL_COMMAND, /@whiskeysockets\/baileys/);
+  assert.match(SIDECAR_INSTALL_COMMAND, /--no-save/);
+  assert.doesNotMatch(SIDECAR_INSTALL_COMMAND, /open-wa|puppeteer|chrome/i);
+});
+
 test("production package.json does not depend on open-wa or puppeteer", () => {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
   const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")) as {
@@ -96,6 +103,6 @@ test("production package.json does not depend on open-wa or puppeteer", () => {
     ...Object.keys(pkg.optionalDependencies ?? {}),
   ];
   for (const name of names) {
-    assert.doesNotMatch(name, /open-wa|wa-automate|puppeteer|chromium/i);
+    assert.doesNotMatch(name, /open-wa|wa-automate|puppeteer|chromium|baileys/i);
   }
 });

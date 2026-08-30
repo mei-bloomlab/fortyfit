@@ -1,55 +1,72 @@
 export const SESSION_ID = "fortyfit";
-export const SESSION_DIR = "_IGNORE_fortyfit";
+export const SESSION_DIR = "_IGNORE_baileys";
+export const BAILEYS_PACKAGE = "@whiskeysockets/baileys";
+export const QRCODE_PACKAGE = "qrcode";
 
-export const MAC_CHROME_EXECUTABLE =
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+export const BAILEYS_INSTALL = `npm install ${BAILEYS_PACKAGE} ${QRCODE_PACKAGE} --no-save`;
 
-/**
- * Bind Puppeteer to a real Chrome binary. useChrome:true alone can still launch
- * a Chromium WhatsApp Web rejects ("Update Google Chrome").
- */
-export function resolveChromeExecutablePath(
-  env = process.env,
-  platform = process.platform,
-) {
-  const fromEnv = String(env.CHROME_PATH ?? "").trim();
-  if (fromEnv) return fromEnv;
-  if (platform === "darwin") return MAC_CHROME_EXECUTABLE;
-  return undefined;
-}
+export const MISSING_BAILEYS_COPY = `Paket ${BAILEYS_PACKAGE} belum terpasang.\nJalankan: ${BAILEYS_INSTALL}\nlalu npm run openwa lagi.`;
 
-export function buildOpenWaCreateConfig(
-  env = process.env,
-  platform = process.platform,
-) {
-  const config = {
-    sessionId: SESSION_ID,
-    multiDevice: true,
-    useChrome: true,
-    headless: false,
-    authTimeout: 0,
-    qrTimeout: 0,
-    waitForRipeSessionTimeout: 0,
-    waitForRipeSession: false,
-    killProcessOnTimeout: false,
-    blockCrashLogs: true,
-    disableSpins: true,
-    qrLogSkip: true,
-    cachedPatch: true,
+export function resolveBaileysExports(mod) {
+  const nested = mod?.default && typeof mod.default === "object" ? mod.default : {};
+  const makeWASocket =
+    typeof mod?.makeWASocket === "function"
+      ? mod.makeWASocket
+      : typeof mod?.default === "function"
+        ? mod.default
+        : nested.makeWASocket;
+  return {
+    makeWASocket,
+    useMultiFileAuthState:
+      mod?.useMultiFileAuthState ?? nested.useMultiFileAuthState,
+    DisconnectReason: mod?.DisconnectReason ?? nested.DisconnectReason ?? {},
   };
-  const executablePath = resolveChromeExecutablePath(env, platform);
-  if (executablePath) {
-    config.executablePath = executablePath;
-  }
-  return config;
 }
 
-export const OPENWA_CREATE_CONFIG = buildOpenWaCreateConfig();
+export function disconnectStatusCode(lastDisconnect) {
+  return lastDisconnect?.error?.output?.statusCode;
+}
+
+export function shouldReconnectBaileys(lastDisconnect, DisconnectReason = {}) {
+  const loggedOut = DisconnectReason.loggedOut ?? 401;
+  return disconnectStatusCode(lastDisconnect) !== loggedOut;
+}
+
+export function toBaileysJid(chatId) {
+  const raw = String(chatId ?? "");
+  if (raw.endsWith("@s.whatsapp.net") || raw.endsWith("@g.us")) return raw;
+  const digits = raw.replace(/@c\.us$/, "").replace(/\D/g, "");
+  return `${digits}@s.whatsapp.net`;
+}
+
+export function createBaileysSender(sock) {
+  return {
+    async sendText(chatId, message) {
+      const sent = await sock.sendMessage(toBaileysJid(chatId), {
+        text: String(message ?? ""),
+      });
+      return sent?.key?.id ?? sent?.id;
+    },
+  };
+}
+
+export async function baileysQrToDataUrl(qr, toDataUrl) {
+  const text = String(qr ?? "").trim();
+  if (!text || typeof toDataUrl !== "function") return null;
+  const dataUrl = await toDataUrl(text, { width: 256, margin: 1 });
+  if (typeof dataUrl !== "string" || !dataUrl.startsWith("data:image/")) {
+    return null;
+  }
+  return dataUrl;
+}
 
 export function detailFromLaunchError(error) {
   const message = error instanceof Error ? error.message : String(error ?? "");
-  if (/timeout|30000ms|waiting failed/i.test(message)) {
-    return `Timeout sebelum QR. Hapus folder ${SESSION_DIR} di repo, lalu npm run openwa lagi.`;
+  if (/cannot find module|not found/i.test(message) && /baileys|qrcode/i.test(message)) {
+    return MISSING_BAILEYS_COPY;
   }
-  return message || "Gagal start OpenWA";
+  if (/logged.?out|unpaired/i.test(message)) {
+    return `Sesi terputus. Hapus folder ${SESSION_DIR} di repo, lalu npm run openwa lagi dan scan QR di /admin/setting.`;
+  }
+  return message || "Gagal start sidecar WhatsApp";
 }

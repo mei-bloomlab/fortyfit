@@ -1,7 +1,10 @@
 export const DEFAULT_SIDECAR_URL = "http://127.0.0.1:43201";
 
 export const QR_WAITING_COPY =
-  "QR muncul setelah WhatsApp Web benar-benar menerbitkannya. Kalau Chrome minta update browser, sidecar memakai Chrome yang salah.";
+  "QR muncul setelah sidecar Baileys menerbitkannya. Tidak ada jendela Chrome.";
+
+export const SIDECAR_INSTALL_COMMAND = `npm install @whiskeysockets/baileys qrcode --no-save
+npm run openwa`;
 
 export function browserSidecarUrl(
   env: NodeJS.ProcessEnv | Record<string, string | undefined> = process.env,

@@ -10,20 +10,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  classifySidecarPanel,
   sidecarHealthUrl,
-  sidecarQrSrc,
+  sidecarQrJsonUrl,
+  type SidecarPanelView,
 } from "@/lib/openwa/sidecar-browser";
 
-type Health = {
-  ready: boolean;
+type HealthBody = {
+  ready?: boolean;
   detail?: string;
 };
 
-type PanelState =
-  | { kind: "checking" }
-  | { kind: "down" }
-  | { kind: "waiting"; detail: string; nonce: number }
-  | { kind: "ready"; detail: string };
+type QrBody = {
+  ready?: boolean;
+  detail?: string;
+  qrDataUrl?: string | null;
+};
+
+type PanelState = { kind: "checking" } | SidecarPanelView;
 
 const POLL_MS = 2500;
 
@@ -32,35 +36,10 @@ export function WhatsAppQrPanel({ sidecarUrl }: { sidecarUrl: string }) {
 
   useEffect(() => {
     let cancelled = false;
-    let nonce = Date.now();
 
     async function tick() {
-      try {
-        const response = await fetch(sidecarHealthUrl(sidecarUrl), {
-          cache: "no-store",
-        });
-        if (!response.ok) {
-          if (!cancelled) setPanel({ kind: "down" });
-          return;
-        }
-        const body = (await response.json()) as Health;
-        if (cancelled) return;
-        if (body.ready) {
-          setPanel({
-            kind: "ready",
-            detail: body.detail ?? "WhatsApp FortyFit tersambung.",
-          });
-          return;
-        }
-        nonce += 1;
-        setPanel({
-          kind: "waiting",
-          detail: body.detail ?? "Menunggu QR WhatsApp.",
-          nonce,
-        });
-      } catch {
-        if (!cancelled) setPanel({ kind: "down" });
-      }
+      const snapshot = await readSidecarSnapshot(sidecarUrl);
+      if (!cancelled) setPanel(classifySidecarPanel(snapshot));
     }
 
     void tick();
@@ -95,16 +74,65 @@ export function WhatsAppQrPanel({ sidecarUrl }: { sidecarUrl: string }) {
   );
 }
 
+async function readSidecarSnapshot(sidecarUrl: string): Promise<{
+  healthOk: boolean;
+  ready?: boolean;
+  detail?: string;
+  qrDataUrl?: string | null;
+}> {
+  let healthOk = false;
+  let ready = false;
+  let detail: string | undefined;
+  let qrDataUrl: string | null = null;
+
+  try {
+    const healthRes = await fetch(sidecarHealthUrl(sidecarUrl), {
+      cache: "no-store",
+    });
+    if (!healthRes.ok) {
+      return { healthOk: false };
+    }
+    healthOk = true;
+    const health = (await healthRes.json()) as HealthBody;
+    ready = Boolean(health.ready);
+    detail = health.detail;
+  } catch {
+    return { healthOk: false };
+  }
+
+  if (ready) {
+    return { healthOk, ready, detail, qrDataUrl: null };
+  }
+
+  try {
+    const qrRes = await fetch(sidecarQrJsonUrl(sidecarUrl), {
+      cache: "no-store",
+    });
+    if (qrRes.ok) {
+      const qr = (await qrRes.json()) as QrBody;
+      if (qr.ready) ready = true;
+      if (qr.detail) detail = qr.detail;
+      if (typeof qr.qrDataUrl === "string") qrDataUrl = qr.qrDataUrl;
+    }
+  } catch {
+    // Health already proved the sidecar is up. Missing QR is waiting, not down.
+  }
+
+  return { healthOk, ready, detail, qrDataUrl };
+}
+
 function panelLabel(panel: PanelState): string {
   switch (panel.kind) {
     case "ready":
       return "tersambung";
-    case "waiting":
+    case "qr":
       return "menunggu scan";
+    case "waiting":
+      return "menunggu QR";
     case "checking":
       return "mengecek";
-    case "down":
-      return "sidecar mati";
+    case "unreachable":
+      return "tidak terjangkau";
     default: {
       const _exhaustive: never = panel;
       return _exhaustive;
@@ -130,8 +158,8 @@ function PanelBody({
   sidecarUrl: string;
 }) {
   switch (panel.kind) {
-    case "down":
-      return <SidecarDownMessage sidecarUrl={sidecarUrl} />;
+    case "unreachable":
+      return <SidecarUnreachableMessage sidecarUrl={sidecarUrl} />;
     case "checking":
       return (
         <p className="text-sm leading-6 text-muted-foreground">
@@ -139,13 +167,9 @@ function PanelBody({
         </p>
       );
     case "waiting":
-      return (
-        <WaitingQr
-          sidecarUrl={sidecarUrl}
-          nonce={panel.nonce}
-          detail={panel.detail}
-        />
-      );
+      return <WaitingForQr detail={panel.detail} />;
+    case "qr":
+      return <ReadyQr qrDataUrl={panel.qrDataUrl} detail={panel.detail} />;
     case "ready":
       return (
         <p className="text-sm leading-6 text-muted-foreground">{panel.detail}</p>
@@ -157,15 +181,19 @@ function PanelBody({
   }
 }
 
-function WaitingQr({
-  sidecarUrl,
-  nonce,
-  detail,
-}: {
-  sidecarUrl: string;
-  nonce: number;
-  detail: string;
-}) {
+function WaitingForQr({ detail }: { detail: string }) {
+  return (
+    <div className="grid gap-3">
+      <p className="text-sm leading-6 text-muted-foreground">{detail}</p>
+      <p className="text-sm leading-6 text-muted-foreground">
+        Sidecar sudah nyala. Belum ada kode untuk di-scan. Buka halaman ini di
+        Chrome pada Mac yang menjalankan npm run openwa — bukan dari HP.
+      </p>
+    </div>
+  );
+}
+
+function ReadyQr({ qrDataUrl, detail }: { qrDataUrl: string; detail: string }) {
   return (
     <div className="grid gap-3">
       <p className="text-sm leading-6 text-muted-foreground">{detail}</p>
@@ -175,10 +203,10 @@ function WaitingQr({
         di Mac. Tidak perlu membaca terminal.
       </p>
       <div className="flex size-[280px] items-center justify-center rounded-xl bg-white p-3">
-        {/* localhost sidecar: next/image cannot load 127.0.0.1 from Vercel admin */}
+        {/* data URL from sidecar JSON — next/image cannot load 127.0.0.1 from Vercel */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={sidecarQrSrc(sidecarUrl, nonce)}
+          src={qrDataUrl}
           alt="QR WhatsApp FortyFit"
           width={256}
           height={256}
@@ -189,12 +217,14 @@ function WaitingQr({
   );
 }
 
-function SidecarDownMessage({ sidecarUrl }: { sidecarUrl: string }) {
+function SidecarUnreachableMessage({ sidecarUrl }: { sidecarUrl: string }) {
   return (
     <div className="grid gap-2 text-sm leading-6 text-muted-foreground">
       <p>
-        Sidecar WhatsApp belum nyala di laptop ini. Vercel tidak bisa melihat
-        QR — yang memuat gambar adalah browser Anda ke {sidecarUrl}.
+        Browser ini tidak menjangkau sidecar di {sidecarUrl}. Itu terjadi kalau
+        sidecar belum nyala, fetch localhost diblokir, atau halaman ini dibuka
+        dari HP — HP tidak melihat 127.0.0.1 di Mac. Buka Setting di Chrome pada
+        Mac yang menjalankan npm run openwa.
       </p>
       <p>Di folder repo FortyFit, pada Mac studio, jalankan:</p>
       <pre className="overflow-x-auto rounded-xl border border-border/70 bg-muted/40 px-3 py-2 font-mono text-xs text-foreground">
@@ -202,8 +232,7 @@ function SidecarDownMessage({ sidecarUrl }: { sidecarUrl: string }) {
 npm run openwa`}
       </pre>
       <p>
-        Lalu biarkan terminal terbuka dan buka halaman Setting ini lagi di
-        browser pada Mac yang sama. Kalau TimeoutError sebelum QR, hapus folder
+        Biarkan terminal terbuka. Kalau TimeoutError sebelum QR, hapus folder
         _IGNORE_fortyfit di repo lalu jalankan npm run openwa lagi.
       </p>
     </div>

@@ -66,9 +66,9 @@ npm install @open-wa/wa-automate --no-save
 npm run openwa
 ```
 
-Chrome di Mac harus terpasang. Sidecar memakai Chrome asli (`useChrome: true`) dan membuka jendela (`headless: false`) supaya QR WhatsApp terlihat. Panel `/admin/setting` juga memuat QR dari `http://127.0.0.1:43201/qr`.
+Chrome di Mac harus terpasang. Sidecar membuka Google Chrome terpasang (`executablePath` default `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`, atau `CHROME_PATH`) dengan `useChrome: true` dan `headless: false`. Tanpa path itu, Puppeteer bisa membuka Chromium yang ditolak WhatsApp Web.
 
-Buka `/admin/setting` di browser pada Mac itu, atau scan dari jendela Chrome yang baru terbuka. Dari HP FortyFit: WhatsApp → Setelan → Perangkat tertaut. Kalau panel bilang sidecar mati, dua perintah di atas belum jalan.
+Buka `/admin/setting` di browser pada Mac itu, atau scan dari jendela Chrome yang baru terbuka. Dari HP FortyFit: WhatsApp → Setelan → Perangkat tertaut. Panel membedakan sidecar tidak terjangkau, sidecar nyala tapi QR belum terbit, QR siap, dan tersambung. HP tidak melihat `127.0.0.1` di Mac.
 
 Kalau `TimeoutError` / `Waiting failed: 30000ms exceeded` sebelum QR muncul:
 

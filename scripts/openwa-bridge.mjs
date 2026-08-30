@@ -73,6 +73,11 @@ const server = createServer(
 server.listen(port, "127.0.0.1", () => {
   console.log(`OpenWA bridge http://127.0.0.1:${port}`);
   console.log("QR: buka /admin/setting di browser pada Mac ini, atau http://127.0.0.1:" + port + "/");
+  if (OPENWA_CREATE_CONFIG.executablePath) {
+    console.log(`Chrome executablePath ${OPENWA_CREATE_CONFIG.executablePath}`);
+  } else {
+    console.log("Chrome: useChrome tanpa executablePath (set CHROME_PATH atau jalankan di macOS)");
+  }
 });
 
 openWa

@@ -122,7 +122,7 @@ export class LiveWhatsAppAdapter implements WhatsAppAdapter {
           body.detail ??
           (body.ready
             ? `Tersambung ke OpenWA di ${this.config.url}`
-            : "OpenWA belum siap. Scan QR di terminal sidecar."),
+            : "OpenWA belum siap. Scan QR di /admin/setting."),
       };
     } catch {
       return {

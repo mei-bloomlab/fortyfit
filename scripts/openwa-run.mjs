@@ -56,9 +56,9 @@ process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
 console.log("OpenWA sidecar FortyFit");
-console.log("1) Scan QR sekali dari HP yang jadi pengirim.");
+console.log("1) Buka /admin/setting di browser pada Mac ini, lalu scan QR dari HP FortyFit.");
 console.log("2) Biarkan terminal ini terbuka selama laptop nyala (~09–17 WITA).");
-console.log("3) Admin mengubah ambang, jam, dan nomor di /admin/setting — bukan di sini.");
+console.log("3) Admin mengubah ambang, jam, dan nomor penerima di /admin/setting — bukan di sini.");
 
 start("bridge", process.execPath, [resolve(process.cwd(), "scripts/openwa-bridge.mjs")]);
 

@@ -49,20 +49,25 @@ npm run db:seed
 
 ## WhatsApp (laptop studio, tanpa VPS)
 
-Dua orang, dua tugas:
+Dua nomor, dua tugas:
 
-- **Admin studio** memakai `/admin` di HP. Ambang sisa sesi, nomor WA admin, nyala/mati notice otomatis, ringkasan pagi, dan jam ringkasan diubah di **Setting**. Tidak perlu minta orang laptop edit kode.
-- **Pemegang laptop** hanya menjaga Mac nyala (kira-kira 09–17 WITA) dan menjalankan sidecar.
+- **QR / pengirim** = nomor WhatsApp FortyFit. Scan di `/admin/setting` (panel Scan WhatsApp FortyFit) dari browser **pada Mac yang sama** dengan sidecar.
+- **Nomor admin** = penerima digest dan notice (field di Setting, misalnya 081293931134). Bukan nomor yang di-scan.
 
-Di laptop, sekali saja:
+Paket `@open-wa/wa-automate` tidak masuk `package.json` — Vercel tidak menginstal Chrome/puppeteer.
+
+Di laptop studio, sekali saja:
 
 ```bash
 cp .env.example .env
 # isi DATABASE_URL dengan Neon pooled URL yang sama seperti Vercel
 npm install
+npm install @open-wa/wa-automate --no-save
 npm run openwa
 ```
 
-Scan QR WhatsApp sekali. Biarkan terminal terbuka. Sidecar mengirim antrian pending (ucapan terima kasih customer, notice admin, reminder manual) dan, setelah jam di Setting (default 09:30 WITA), mengirim **satu** ringkasan pagi ke nomor admin. Kalau laptop nyala lebih siang, ringkasan tetap dikirim sekali hari itu.
+Buka `/admin/setting` di browser pada Mac itu. Scan QR dari HP FortyFit: WhatsApp → Setelan → Perangkat tertaut. Kalau panel bilang sidecar mati, dua perintah di atas belum jalan. Jangan cari QR di terminal.
 
-Jangan commit `.env`. Tidak perlu VPS.
+Biarkan terminal `npm run openwa` terbuka (~09–17 WITA). Sidecar mengirim antrian pending dan, setelah jam di Setting (default 09:30 WITA), **satu** ringkasan pagi ke nomor admin. Kalau laptop nyala lebih siang, ringkasan tetap dikirim sekali hari itu.
+
+Jangan commit `.env`. Tidak perlu VPS atau tunnel.

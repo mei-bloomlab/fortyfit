@@ -141,8 +141,9 @@ export function AdminPhoneForm({ adminPhone }: { adminPhone: string }) {
         <Input name="adminPhone" required defaultValue={adminPhone} placeholder="62851..." />
       </Field>
       <p className="text-sm leading-6 text-muted-foreground">
-        Pakai format 62, bukan 08. Notice sisa sesi dan ringkasan pagi dikirim ke
-        nomor ini. Ubah di sini saja — pemegang laptop tidak perlu edit kode.
+        Pakai format 62, bukan 08. Ini nomor penerima digest dan notice admin —
+        bukan nomor yang di-scan di panel QR. QR = pengirim (WA FortyFit).
+        Ubah di sini saja — pemegang laptop tidak perlu edit kode.
       </p>
       <div>
         <Button type="submit">Simpan nomor</Button>

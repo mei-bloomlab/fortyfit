@@ -13,7 +13,9 @@ import {
   NotifySettingsForm,
   PackageCatalog,
 } from "@/components/studio/settings-forms";
+import { WhatsAppQrPanel } from "@/components/studio/whatsapp-qr-panel";
 import { WipeCustomersForm } from "@/components/studio/wipe-customers";
+import { browserSidecarUrl } from "@/lib/openwa/sidecar-browser";
 import { getSettingsPageData } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
@@ -26,10 +28,12 @@ export default async function SettingPage() {
       <PageHeader
         eyebrow="Setting"
         title="Pengaturan studio"
-        description="Atur notif sisa sesi, ringkasan pagi, nomor WA admin, paket, dan jenis latihan. Perubahan tersimpan di database — tidak perlu deploy ulang."
+        description="Scan WhatsApp pengirim, atur notif sisa sesi, ringkasan pagi, nomor WA admin, paket, dan jenis latihan. Perubahan tersimpan di database — tidak perlu deploy ulang."
       />
 
       <div className="grid gap-6">
+        <WhatsAppQrPanel sidecarUrl={browserSidecarUrl()} />
+
         <Card>
           <CardHeader>
             <CardTitle>Notif sisa sesi</CardTitle>
@@ -69,8 +73,9 @@ export default async function SettingPage() {
           <CardHeader>
             <CardTitle>WA Admin</CardTitle>
             <CardDescription>
-              Nomor tujuan notice sisa sesi. Reminder ke customer tetap dikirim
-              manual dari daftar atau detail client.
+              Nomor penerima notice sisa sesi dan ringkasan pagi. Bukan nomor
+              pengirim yang di-scan di panel QR. Reminder ke customer tetap
+              dikirim manual dari daftar atau detail client.
             </CardDescription>
           </CardHeader>
           <CardContent>

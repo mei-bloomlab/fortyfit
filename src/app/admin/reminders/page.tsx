@@ -87,8 +87,9 @@ export default async function RemindersPage() {
           {wa.mode === "enqueue" ? (
             <p className="text-sm leading-6 text-muted-foreground">
               Server hanya menulis antrian. Pesan keluar setelah laptop studio
-              menjalankan npm run openwa. Nomor admin, ambang, dan jam ringkasan
-              diubah di Setting.
+              menjalankan npm run openwa. Scan QR pengirim ada di Setting, di
+              browser pada Mac yang sama — bukan di terminal. Nomor admin,
+              ambang, dan jam ringkasan juga di Setting.
             </p>
           ) : null}
         </CardContent>

@@ -40,8 +40,9 @@ yarn-error.log*
 /prisma/dev.db-journal
 /prisma/*.db
 
-# open-wa session
+# open-wa session (sessionId fortyfit → _IGNORE_fortyfit)
 /_IGNORE_/
+/_IGNORE_*
 /.open-wa/
 
 # vercel

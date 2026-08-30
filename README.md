@@ -23,7 +23,7 @@ Buka http://127.0.0.1:43147 dan http://127.0.0.1:43147/admin
 
 ## Vercel
 
-Situs publik bisa di-deploy sekarang. Admin memakai SQLite lokal; sebelum go-live pindah ke Postgres. OpenWA belakangan, setelah live.
+Situs publik bisa di-deploy sekarang. Admin memakai Neon Postgres — set `DATABASE_URL` (pooled connection string) di project Vercel untuk Production dan Preview. Jangan commit connection string. OpenWA belakangan, setelah live.
 
 Admin bisa menghapus semua customer (plus jadwal, paket sesi, workout, reminder) dari `/admin/customers` atau `/admin/setting` lewat tombol **Hapus semua customer**. Setting studio, katalog paket, dan jenis latihan tetap. Tidak jalan otomatis saat boot — hanya saat tombol dikonfirmasi.
 

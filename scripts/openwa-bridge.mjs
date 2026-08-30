@@ -7,6 +7,10 @@ import {
   createOpenWaHandler,
   normalizeQrDataUrl,
 } from "./openwa-http.mjs";
+import {
+  OPENWA_CREATE_CONFIG,
+  detailFromLaunchError,
+} from "./openwa-launch.mjs";
 
 const require = createRequire(import.meta.url);
 const port = Number(process.env.OPENWA_PORT ?? 43201);
@@ -73,15 +77,7 @@ server.listen(port, "127.0.0.1", () => {
 
 openWa
   .create({
-    sessionId: "fortyfit",
-    multiDevice: true,
-    authTimeout: 60,
-    blockCrashLogs: true,
-    disableSpins: true,
-    headless: true,
-    qrTimeout: 0,
-    qrLogSkip: true,
-    cachedPatch: true,
+    ...OPENWA_CREATE_CONFIG,
     catchQR: captureQr,
   })
   .then((client) => {
@@ -100,6 +96,7 @@ openWa
   })
   .catch((error) => {
     state.ready = false;
-    state.detail = error instanceof Error ? error.message : "Gagal start OpenWA";
+    state.qrDataUrl = null;
+    state.detail = detailFromLaunchError(error);
     console.error(state.detail);
   });

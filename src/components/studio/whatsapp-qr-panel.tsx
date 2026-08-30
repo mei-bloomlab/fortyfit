@@ -171,7 +171,8 @@ function WaitingQr({
       <p className="text-sm leading-6 text-muted-foreground">{detail}</p>
       <p className="text-sm leading-6 text-muted-foreground">
         Dari HP FortyFit buka WhatsApp → Setelan → Perangkat tertaut, lalu scan
-        kode ini. Tidak perlu membaca terminal.
+        kode ini. QR yang sama juga muncul di jendela Chrome yang dibuka sidecar
+        di Mac. Tidak perlu membaca terminal.
       </p>
       <div className="flex size-[280px] items-center justify-center rounded-xl bg-white p-3">
         {/* localhost sidecar: next/image cannot load 127.0.0.1 from Vercel admin */}
@@ -202,7 +203,8 @@ npm run openwa`}
       </pre>
       <p>
         Lalu biarkan terminal terbuka dan buka halaman Setting ini lagi di
-        browser pada Mac yang sama.
+        browser pada Mac yang sama. Kalau TimeoutError sebelum QR, hapus folder
+        _IGNORE_fortyfit di repo lalu jalankan npm run openwa lagi.
       </p>
     </div>
   );

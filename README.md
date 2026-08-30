@@ -66,7 +66,16 @@ npm install @open-wa/wa-automate --no-save
 npm run openwa
 ```
 
-Buka `/admin/setting` di browser pada Mac itu. Scan QR dari HP FortyFit: WhatsApp → Setelan → Perangkat tertaut. Kalau panel bilang sidecar mati, dua perintah di atas belum jalan. Jangan cari QR di terminal.
+Chrome di Mac harus terpasang. Sidecar memakai Chrome asli (`useChrome: true`) dan membuka jendela (`headless: false`) supaya QR WhatsApp terlihat. Panel `/admin/setting` juga memuat QR dari `http://127.0.0.1:43201/qr`.
+
+Buka `/admin/setting` di browser pada Mac itu, atau scan dari jendela Chrome yang baru terbuka. Dari HP FortyFit: WhatsApp → Setelan → Perangkat tertaut. Kalau panel bilang sidecar mati, dua perintah di atas belum jalan.
+
+Kalau `TimeoutError` / `Waiting failed: 30000ms exceeded` sebelum QR muncul:
+
+```bash
+rm -rf _IGNORE_fortyfit
+npm run openwa
+```
 
 Biarkan terminal `npm run openwa` terbuka (~09–17 WITA). Sidecar mengirim antrian pending dan, setelah jam di Setting (default 09:30 WITA), **satu** ringkasan pagi ke nomor admin. Kalau laptop nyala lebih siang, ringkasan tetap dikirim sekali hari itu.
 

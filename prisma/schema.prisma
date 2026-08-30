@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model StudioSettings {
+  id                String   @id @default("fortyfit")
+  reminderThreshold Int      @default(2)
+  adminPhone        String   @default("6285155070866")
+  autoNotifyAdmin   Boolean  @default(true)
+  timezone          String   @default("Asia/Makassar")
+  openWaMode        String   @default("mock")
+  updatedAt         DateTime @updatedAt
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  goal      String
+  notes     String?
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  packs        SessionPack[]
+  appointments Appointment[]
+  workouts     WorkoutLog[]
+  reminders    Reminder[]
+
+  @@index([phone])
+  @@index([status])
+}
+
+model SessionPack {
+  id          String    @id @default(cuid())
+  customerId  String
+  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  program     String
+  priceIdr    Int?
+  purchased   Int
+  used        Int       @default(0)
+  remaining   Int
+  purchasedAt DateTime  @default(now())
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  appointments Appointment[]
+  reminders    Reminder[]
+
+  @@index([customerId])
+  @@index([remaining])
+}
+
+model ProgramPackage {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  sessions  Int      @default(8)
+  priceIdr  Int
+  archived  Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([archived])
+  @@index([sortOrder])
+}
+
+model ExerciseType {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  archived  Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([archived])
+  @@index([sortOrder])
+}
+
+model Appointment {
+  id          String       @id @default(cuid())
+  customerId  String
+  customer    Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  packId      String?
+  pack        SessionPack? @relation(fields: [packId], references: [id], onDelete: SetNull)
+  slot        Int          @default(1)
+  startsAt    DateTime?
+  durationMin Int          @default(60)
+  location    String       @default("Tabanan")
+  status      String       @default("unscheduled")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  workout WorkoutLog?
+
+  @@index([startsAt])
+  @@index([customerId])
+  @@index([status])
+  @@index([packId, slot])
+}
+
+model WorkoutLog {
+  id            String       @id @default(cuid())
+  customerId    String
+  customer      Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  appointmentId String?      @unique
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  performedAt   DateTime
+  focus         String
+  exercisesJson String
+  coachNote     String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([customerId])
+  @@index([performedAt])
+}
+
+model Reminder {
+  id         String       @id @default(cuid())
+  customerId String
+  customer   Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  packId     String?
+  pack       SessionPack? @relation(fields: [packId], references: [id], onDelete: SetNull)
+  kind       String
+  channel    String       @default("whatsapp")
+  payload    String
+  status     String       @default("pending")
+  attempts   Int          @default(0)
+  lastError  String?
+  sentAt     DateTime?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@index([status])
+  @@index([customerId])
+  @@index([kind])
+}
+
+model GraphRun {
+  id        String   @id @default(cuid())
+  graph     String
+  trigger   String
+  tracesJson String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

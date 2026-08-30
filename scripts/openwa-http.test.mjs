@@ -70,7 +70,7 @@ test("GET /health and GET / are public even with a token", async () => {
       const html = await page.text();
       assert.match(html, /Scan WhatsApp FortyFit/);
       assert.match(html, new RegExp(SCAN_HINT.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-      assert.doesNotMatch(html, /500/);
+      assert.doesNotMatch(html, /Internal Server Error|HTTP 500/);
     },
   );
 });

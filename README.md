@@ -54,7 +54,7 @@ Dua nomor, dua tugas:
 - **QR / pengirim** = nomor WhatsApp FortyFit. Scan di `/admin/setting` (panel Scan WhatsApp FortyFit) dari browser **pada Mac yang sama** dengan sidecar.
 - **Nomor admin** = penerima digest dan notice (field di Setting, misalnya 081293931134). Bukan nomor yang di-scan.
 
-Paket `@open-wa/wa-automate` tidak masuk `package.json` — Vercel tidak menginstal Chrome/puppeteer.
+Paket `@whiskeysockets/baileys` tidak masuk `package.json` — Vercel tidak menginstal Baileys, Chrome, atau Puppeteer. Sidecar memakai Baileys (tanpa browser). WhatsApp Web + Chrome/Puppeteer ditolak di Mac ini.
 
 Di laptop studio, sekali saja:
 
@@ -62,18 +62,16 @@ Di laptop studio, sekali saja:
 cp .env.example .env
 # isi DATABASE_URL dengan Neon pooled URL yang sama seperti Vercel
 npm install
-npm install @open-wa/wa-automate --no-save
+npm install @whiskeysockets/baileys qrcode --no-save
 npm run openwa
 ```
 
-Chrome di Mac harus terpasang. Sidecar memakai Chrome asli (`useChrome: true`) dan membuka jendela (`headless: false`) supaya QR WhatsApp terlihat. Panel `/admin/setting` juga memuat QR dari `http://127.0.0.1:43201/qr`.
+Tidak ada jendela Chrome. Buka `/admin/setting` di browser pada Mac itu. Dari HP FortyFit: WhatsApp → Setelan → Perangkat tertaut. Panel membedakan sidecar tidak terjangkau, sidecar nyala tapi QR belum terbit, QR siap, dan tersambung. HP tidak melihat `127.0.0.1` di Mac.
 
-Buka `/admin/setting` di browser pada Mac itu, atau scan dari jendela Chrome yang baru terbuka. Dari HP FortyFit: WhatsApp → Setelan → Perangkat tertaut. Kalau panel bilang sidecar mati, dua perintah di atas belum jalan.
-
-Kalau `TimeoutError` / `Waiting failed: 30000ms exceeded` sebelum QR muncul:
+Kalau sesi rusak atau minta scan lagi:
 
 ```bash
-rm -rf _IGNORE_fortyfit
+rm -rf _IGNORE_baileys
 npm run openwa
 ```
 

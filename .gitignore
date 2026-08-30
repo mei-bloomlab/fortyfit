@@ -40,10 +40,12 @@ yarn-error.log*
 /prisma/dev.db-journal
 /prisma/*.db
 
-# open-wa session (sessionId fortyfit → _IGNORE_fortyfit)
+# sidecar WhatsApp session (Baileys auth files on the studio Mac)
 /_IGNORE_/
 /_IGNORE_*
+/_IGNORE_baileys/
 /.open-wa/
+/auth_info_baileys/
 
 # vercel
 .vercel

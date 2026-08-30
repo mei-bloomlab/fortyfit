@@ -65,6 +65,12 @@ test("GET /health and GET / are public even with a token", async () => {
       assert.equal(body.ready, false);
       assert.match(body.detail, /QR/);
 
+      const qrJson = await fetch(`${base}/qr?format=json`);
+      assert.equal(qrJson.status, 200);
+      const qrBody = await qrJson.json();
+      assert.equal(qrBody.ready, false);
+      assert.equal(qrBody.qrDataUrl, null);
+
       const page = await fetch(`${base}/`);
       assert.equal(page.status, 200);
       const html = await page.text();

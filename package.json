@@ -9,7 +9,11 @@
     "lint": "eslint",
     "db:prepare": "prisma generate && prisma db push && prisma db seed",
     "db:seed": "prisma db seed",
-    "openwa": "node scripts/openwa-bridge.mjs",
+    "openwa": "node scripts/openwa-run.mjs",
+    "openwa:bridge": "node scripts/openwa-bridge.mjs",
+    "openwa:drain": "tsx scripts/openwa-drain.ts",
+    "test": "tsx --test src/lib/openwa/messages.test.ts src/lib/openwa/digest.test.ts",
+    "test:openwa": "tsx scripts/verify-openwa-flow.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {

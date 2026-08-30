@@ -12,6 +12,7 @@ import {
 } from "@/lib/loops/reminder-dispatch";
 import { exercisesFromFormData, saveWorkoutLog } from "@/lib/loops/workout-log";
 import { runOpsGraph } from "@/lib/ops-graph";
+import { normalizeDigestTime } from "@/lib/openwa/digest";
 import { parseSessionCount, sessionSlotRows } from "@/lib/session-slots";
 import { defaultSessionsForPackage, fallbackProgramName } from "@/lib/studio-catalog";
 
@@ -449,16 +450,41 @@ export async function updateNotifySettingsAction(formData: FormData) {
   const threshold = Number(readString(formData, "threshold") || "2");
   const hasAutoField = formData.has("autoNotifyAdminField");
   const autoNotifyAdmin = formData.get("autoNotifyAdmin") === "1";
+  const hasThanksField = formData.has("customerThanksEnabledField");
+  const customerThanksEnabled = formData.get("customerThanksEnabled") === "1";
   await prisma.studioSettings.upsert({
     where: { id: "fortyfit" },
     update: {
       reminderThreshold: Number.isFinite(threshold) ? threshold : 2,
       ...(hasAutoField ? { autoNotifyAdmin } : {}),
+      ...(hasThanksField ? { customerThanksEnabled } : {}),
     },
     create: {
       id: "fortyfit",
       reminderThreshold: Number.isFinite(threshold) ? threshold : 2,
       autoNotifyAdmin: hasAutoField ? autoNotifyAdmin : true,
+      customerThanksEnabled: hasThanksField ? customerThanksEnabled : true,
+    },
+  });
+  refreshStudio();
+}
+
+export async function updateMorningDigestAction(formData: FormData) {
+  const morningDigestEnabled = formData.get("morningDigestEnabled") === "1";
+  const morningDigestTime = normalizeDigestTime(readString(formData, "morningDigestTime"));
+  const timezone = readString(formData, "timezone") || "Asia/Makassar";
+  await prisma.studioSettings.upsert({
+    where: { id: "fortyfit" },
+    update: {
+      morningDigestEnabled,
+      morningDigestTime,
+      timezone,
+    },
+    create: {
+      id: "fortyfit",
+      morningDigestEnabled,
+      morningDigestTime,
+      timezone,
     },
   });
   refreshStudio();

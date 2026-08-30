@@ -15,13 +15,15 @@ import {
   scanAndDispatchAction,
   skipReminderAction,
 } from "@/lib/actions";
-import { KIND_LABEL, STATUS_LABEL, STATUS_TONE } from "@/lib/labels";
+import { KIND_LABEL, STATUS_LABEL, STATUS_TONE, reminderHeadline } from "@/lib/labels";
 import { listReminders } from "@/lib/queries";
+import { getWhatsAppAdapter } from "@/lib/openwa/adapter";
 import {
   ADMIN_NOTICE_KIND,
   CUSTOMER_MANUAL_KIND,
-  getWhatsAppAdapter,
-} from "@/lib/openwa/adapter";
+  CUSTOMER_THANKS_KIND,
+  MORNING_DIGEST_KIND,
+} from "@/lib/openwa/messages";
 import { formatDateTime } from "@/lib/time";
 import Link from "next/link";
 
@@ -34,10 +36,16 @@ export default async function RemindersPage() {
   ]);
 
   const adminNotices = reminders.filter((item) => item.kind === ADMIN_NOTICE_KIND);
+  const morningDigest = reminders.filter((item) => item.kind === MORNING_DIGEST_KIND);
+  const customerThanks = reminders.filter((item) => item.kind === CUSTOMER_THANKS_KIND);
   const customerManual = reminders.filter((item) => item.kind === CUSTOMER_MANUAL_KIND);
-  const other = reminders.filter(
-    (item) => item.kind !== ADMIN_NOTICE_KIND && item.kind !== CUSTOMER_MANUAL_KIND,
-  );
+  const known = new Set([
+    ADMIN_NOTICE_KIND,
+    MORNING_DIGEST_KIND,
+    CUSTOMER_THANKS_KIND,
+    CUSTOMER_MANUAL_KIND,
+  ]);
+  const other = reminders.filter((item) => !known.has(item.kind));
 
   return (
     <div>
@@ -76,10 +84,11 @@ export default async function RemindersPage() {
               Buka Setting
             </Button>
           </div>
-          {wa.mode === "mock" ? (
+          {wa.mode === "enqueue" ? (
             <p className="text-sm leading-6 text-muted-foreground">
-              Mode mock: antrian tercatat, pengiriman live tidak jalan. Nomor admin
-              dan ambang notif diubah di Setting.
+              Server hanya menulis antrian. Pesan keluar setelah laptop studio
+              menjalankan npm run openwa. Nomor admin, ambang, dan jam ringkasan
+              diubah di Setting.
             </p>
           ) : null}
         </CardContent>
@@ -92,6 +101,24 @@ export default async function RemindersPage() {
         emptyDescription="Tandai sesi selesai sampai sisa paket masuk ambang. Notice terkirim sendiri."
         items={adminNotices}
         destination="WA admin"
+      />
+
+      <ReminderGroup
+        title="Ringkasan pagi"
+        description="Satu daftar customer di ambang, dikirim ke WA admin sekali per hari."
+        emptyTitle="Belum ada ringkasan pagi"
+        emptyDescription="Laptop studio mengirim ringkasan setelah jam yang diatur di Setting."
+        items={morningDigest}
+        destination="WA admin"
+      />
+
+      <ReminderGroup
+        title="Ucapan terima kasih ke customer"
+        description="Masuk antrian setelah sesi ditandai selesai, beserta daftar gerakan kalau ada."
+        emptyTitle="Belum ada ucapan terima kasih"
+        emptyDescription="Tandai sesi selesai dari jadwal atau dashboard."
+        items={customerThanks}
+        destination="WA customer"
       />
 
       <ReminderGroup
@@ -145,7 +172,7 @@ function ReminderGroup({
             <Card key={item.id} size="sm">
               <CardHeader>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <CardTitle>{item.customer.name}</CardTitle>
+                  <CardTitle>{reminderHeadline(item)}</CardTitle>
                   <Badge variant={STATUS_TONE[item.status] ?? "outline"}>
                     {STATUS_LABEL[item.status] ?? item.status}
                   </Badge>

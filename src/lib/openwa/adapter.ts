@@ -1,5 +1,15 @@
+import {
+  ADMIN_NOTICE_KIND,
+  CUSTOMER_MANUAL_KIND,
+  buildCustomerManualMessage,
+  buildLowSessionMessage,
+  reminderCoversRemaining,
+} from "@/lib/openwa/messages";
+
+export type WhatsAppMode = "enqueue" | "live";
+
 export type WhatsAppStatus = {
-  mode: "mock" | "live";
+  mode: WhatsAppMode;
   ready: boolean;
   detail: string;
 };
@@ -28,34 +38,57 @@ export function toChatId(phone: string): string {
 
 export function openWaConfig() {
   return {
-    mode: process.env.OPENWA_MODE === "live" ? "live" : "mock",
+    mode: process.env.OPENWA_MODE === "live" ? "live" : "enqueue",
     url: (process.env.OPENWA_URL ?? "http://127.0.0.1:43201").replace(/\/$/, ""),
     token: process.env.OPENWA_TOKEN ?? "",
   } as const;
 }
 
-class MockWhatsAppAdapter implements WhatsAppAdapter {
+export function isSidecarUnreachableError(error?: string | null): boolean {
+  if (!error) return false;
+  const text = error.toLowerCase();
+  return (
+    text.includes("tidak terjangkau") ||
+    text.includes("tidak bisa menghubungi") ||
+    text.includes("sidecar belum") ||
+    text.includes("antrian neon") ||
+    text.includes("belum live") ||
+    text.includes("enqueue")
+  );
+}
+
+export function shouldCountDispatchAttempt(input: {
+  sidecarReady: boolean;
+  sendOk: boolean;
+  error?: string | null;
+}): boolean {
+  if (!input.sidecarReady) return false;
+  if (input.sendOk) return true;
+  return !isSidecarUnreachableError(input.error);
+}
+
+class EnqueueWhatsAppAdapter implements WhatsAppAdapter {
   async status(): Promise<WhatsAppStatus> {
     return {
-      mode: "mock",
-      ready: true,
+      mode: "enqueue",
+      ready: false,
       detail:
-        "Masih mock. Pesan tercatat di antrian, belum keluar ke HP. Untuk live, jalankan npm run openwa lalu set OPENWA_MODE=live.",
+        "Vercel hanya menulis antrian Neon. Pengiriman WhatsApp jalan dari laptop studio (npm run openwa), bukan dari server.",
     };
   }
 
   async sendText(phone: string, message: string): Promise<WhatsAppSendResult> {
-    if (!phone.trim()) {
-      return { ok: false, error: "Nomor WhatsApp kosong" };
+    if (!phone.trim() || !message.trim()) {
+      return { ok: false, error: "Nomor WhatsApp atau isi pesan kosong" };
     }
     return {
-      ok: true,
-      id: `mock:${toChatId(phone)}:${Buffer.from(message).toString("base64").slice(0, 8)}`,
+      ok: false,
+      error: "OpenWA sidecar belum live. Pesan tetap pending di antrian Neon.",
     };
   }
 }
 
-class LiveWhatsAppAdapter implements WhatsAppAdapter {
+export class LiveWhatsAppAdapter implements WhatsAppAdapter {
   private config = openWaConfig();
 
   private headers() {
@@ -95,7 +128,7 @@ class LiveWhatsAppAdapter implements WhatsAppAdapter {
       return {
         mode: "live",
         ready: false,
-        detail: `Tidak bisa menghubungi OpenWA di ${this.config.url}. Jalankan npm run openwa di laptop/VPS studio.`,
+        detail: `Tidak bisa menghubungi OpenWA di ${this.config.url}. Laptop studio harus menjalankan npm run openwa.`,
       };
     }
   }
@@ -131,43 +164,17 @@ class LiveWhatsAppAdapter implements WhatsAppAdapter {
 export function getWhatsAppAdapter(): WhatsAppAdapter {
   return openWaConfig().mode === "live"
     ? new LiveWhatsAppAdapter()
-    : new MockWhatsAppAdapter();
+    : new EnqueueWhatsAppAdapter();
 }
 
-export const ADMIN_NOTICE_KIND = "low_sessions";
-export const CUSTOMER_MANUAL_KIND = "customer_manual";
-
-export function buildLowSessionMessage(input: {
-  name: string;
-  phone: string;
-  remaining: number;
-  program: string;
-}): string {
-  return [
-    `Notice FortyFit: ${input.name} (${input.phone})`,
-    `sisa ${input.remaining} sesi ${input.program}.`,
-    input.remaining === 0
-      ? "Paket sudah habis. Follow-up perpanjang."
-      : `Tinggal ${input.remaining}x lagi habis. Follow-up perpanjang.`,
-  ].join(" ");
+export function getSidecarWhatsAppAdapter(): WhatsAppAdapter {
+  return new LiveWhatsAppAdapter();
 }
 
-export function reminderCoversRemaining(payload: string, remaining: number) {
-  return payload.includes(`sisa ${remaining} sesi`);
-}
-
-export function buildCustomerManualMessage(input: {
-  name: string;
-  remaining: number;
-  program: string;
-}): string {
-  const sisa =
-    input.remaining <= 0
-      ? "Paket sesimu sudah habis."
-      : `Sisa sesimu ${input.remaining} untuk program ${input.program}.`;
-  return [
-    `Hai ${input.name}, ini pengingat dari FortyFit Studio Tabanan.`,
-    sisa,
-    "Yuk datang latihan sesuai jadwal, atau kabari kami kalau perlu reschedule.",
-  ].join(" ");
-}
+export {
+  ADMIN_NOTICE_KIND,
+  CUSTOMER_MANUAL_KIND,
+  buildCustomerManualMessage,
+  buildLowSessionMessage,
+  reminderCoversRemaining,
+};

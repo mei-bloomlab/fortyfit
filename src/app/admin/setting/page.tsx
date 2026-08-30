@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/studio/page-header";
 import {
   AdminPhoneForm,
   ExerciseCatalog,
+  MorningDigestForm,
   NotifySettingsForm,
   PackageCatalog,
 } from "@/components/studio/settings-forms";
@@ -25,7 +26,7 @@ export default async function SettingPage() {
       <PageHeader
         eyebrow="Setting"
         title="Pengaturan studio"
-        description="Atur notif sisa sesi, nomor WA admin, paket (nama, jumlah sesi, harga), dan jenis latihan. Perubahan di sini yang dipakai saat tambah customer dan mencatat sesi."
+        description="Atur notif sisa sesi, ringkasan pagi, nomor WA admin, paket, dan jenis latihan. Perubahan tersimpan di database — tidak perlu deploy ulang."
       />
 
       <div className="grid gap-6">
@@ -41,6 +42,25 @@ export default async function SettingPage() {
             <NotifySettingsForm
               threshold={settings.reminderThreshold}
               autoNotifyAdmin={settings.autoNotifyAdmin}
+              customerThanksEnabled={settings.customerThanksEnabled}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Ringkasan pagi</CardTitle>
+            <CardDescription>
+              Satu WhatsApp ke admin berisi siapa saja yang sisa sesinya sudah
+              masuk ambang. Dikirim dari laptop studio, paling lambat begitu
+              laptop nyala setelah jam yang dipilih.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <MorningDigestForm
+              enabled={settings.morningDigestEnabled}
+              time={settings.morningDigestTime}
+              timezone={settings.timezone}
             />
           </CardContent>
         </Card>

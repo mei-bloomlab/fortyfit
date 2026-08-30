@@ -2,10 +2,16 @@ import { prisma } from "@/lib/db";
 import { MAX_DISPATCH_ATTEMPTS } from "@/lib/engineering/rules";
 import { runLoop, type LoopTick } from "@/lib/engineering/loop";
 import {
+  getSidecarWhatsAppAdapter,
+  getWhatsAppAdapter,
+  shouldCountDispatchAttempt,
+  type WhatsAppAdapter,
+} from "@/lib/openwa/adapter";
+import {
   CUSTOMER_MANUAL_KIND,
   buildCustomerManualMessage,
-  getWhatsAppAdapter,
-} from "@/lib/openwa/adapter";
+  destinationForKind,
+} from "@/lib/openwa/messages";
 
 export type DispatchItem = {
   id: string;
@@ -24,14 +30,11 @@ export type DispatchAction = {
   sent: string[];
   failed: string[];
   exhausted: string[];
+  deferred: string[];
 };
 
-function destinationPhone(
-  kind: string,
-  customerPhone: string,
-  adminPhone: string,
-) {
-  return kind === CUSTOMER_MANUAL_KIND ? customerPhone : adminPhone;
+function emptyDispatch(): DispatchAction {
+  return { sent: [], failed: [], exhausted: [], deferred: [] };
 }
 
 export async function observePendingReminders(): Promise<DispatchObservation> {
@@ -53,23 +56,49 @@ export async function observePendingReminders(): Promise<DispatchObservation> {
     pending: pending.map((item) => ({
       id: item.id,
       kind: item.kind,
-      customerName: item.customer.name,
-      phone: destinationPhone(item.kind, item.customer.phone, settings.adminPhone),
+      customerName: item.customer?.name ?? "Admin",
+      phone: destinationForKind(
+        item.kind,
+        item.customer?.phone ?? "",
+        settings.adminPhone,
+      ),
       payload: item.payload,
       attempts: item.attempts,
     })),
   };
 }
 
-async function sendObserved(items: DispatchItem[]): Promise<DispatchAction> {
-  const adapter = getWhatsAppAdapter();
+async function sendObserved(
+  items: DispatchItem[],
+  adapter: WhatsAppAdapter,
+): Promise<DispatchAction> {
   const sent: string[] = [];
   const failed: string[] = [];
   const exhausted: string[] = [];
+  const deferred: string[] = [];
+
+  if (items.length === 0) return emptyDispatch();
+
+  const status = await adapter.status();
+  if (!status.ready) {
+    for (const item of items) {
+      await prisma.reminder.update({
+        where: { id: item.id },
+        data: { lastError: status.detail },
+      });
+      deferred.push(item.id);
+    }
+    return { sent, failed, exhausted, deferred };
+  }
 
   for (const item of items) {
     const result = await adapter.sendText(item.phone, item.payload);
-    const attempts = item.attempts + 1;
+    const countAttempt = shouldCountDispatchAttempt({
+      sidecarReady: status.ready,
+      sendOk: result.ok,
+      error: result.error,
+    });
+    const attempts = item.attempts + (countAttempt ? 1 : 0);
 
     if (result.ok) {
       await prisma.reminder.update({
@@ -82,6 +111,15 @@ async function sendObserved(items: DispatchItem[]): Promise<DispatchAction> {
         },
       });
       sent.push(item.id);
+      continue;
+    }
+
+    if (!countAttempt) {
+      await prisma.reminder.update({
+        where: { id: item.id },
+        data: { lastError: result.error ?? status.detail },
+      });
+      deferred.push(item.id);
       continue;
     }
 
@@ -99,22 +137,32 @@ async function sendObserved(items: DispatchItem[]): Promise<DispatchAction> {
     else failed.push(item.id);
   }
 
-  return { sent, failed, exhausted };
+  return { sent, failed, exhausted, deferred };
 }
 
-export async function dispatchPendingReminders(): Promise<DispatchAction> {
+export async function dispatchPendingReminders(
+  adapter: WhatsAppAdapter = getWhatsAppAdapter(),
+): Promise<DispatchAction> {
   const observation = await observePendingReminders();
-  return sendObserved(observation.pending);
+  return sendObserved(observation.pending, adapter);
 }
 
-export async function dispatchReminderIds(ids: string[]): Promise<DispatchAction> {
-  if (ids.length === 0) {
-    return { sent: [], failed: [], exhausted: [] };
-  }
+export async function dispatchPendingRemindersFromSidecar(): Promise<DispatchAction> {
+  return dispatchPendingReminders(getSidecarWhatsAppAdapter());
+}
+
+export async function dispatchReminderIds(
+  ids: string[],
+  adapter: WhatsAppAdapter = getWhatsAppAdapter(),
+): Promise<DispatchAction> {
+  if (ids.length === 0) return emptyDispatch();
 
   const observation = await observePendingReminders();
   const wanted = new Set(ids);
-  return sendObserved(observation.pending.filter((item) => wanted.has(item.id)));
+  return sendObserved(
+    observation.pending.filter((item) => wanted.has(item.id)),
+    adapter,
+  );
 }
 
 export async function runReminderDispatchLoop(): Promise<
@@ -144,6 +192,13 @@ export async function runReminderDispatchLoop(): Promise<
           ok: false,
           reason: `${act.failed.length} gagal, masih bisa diulang`,
           route: "retry",
+        };
+      }
+      if (act.deferred.length > 0 && act.sent.length === 0) {
+        return {
+          ok: true,
+          reason: `${act.deferred.length} tetap pending sampai laptop OpenWA nyala`,
+          route: "idle",
         };
       }
       return {

@@ -8,13 +8,17 @@ datasource db {
 }
 
 model StudioSettings {
-  id                String   @id @default("fortyfit")
-  reminderThreshold Int      @default(2)
-  adminPhone        String   @default("6285155070866")
-  autoNotifyAdmin   Boolean  @default(true)
-  timezone          String   @default("Asia/Makassar")
-  openWaMode        String   @default("mock")
-  updatedAt         DateTime @updatedAt
+  id                     String   @id @default("fortyfit")
+  reminderThreshold      Int      @default(2)
+  adminPhone             String   @default("6285155070866")
+  autoNotifyAdmin        Boolean  @default(true)
+  customerThanksEnabled  Boolean  @default(true)
+  morningDigestEnabled   Boolean  @default(true)
+  morningDigestTime      String   @default("09:30")
+  lastMorningDigestOn    String?
+  timezone               String   @default("Asia/Makassar")
+  openWaMode             String   @default("enqueue")
+  updatedAt              DateTime @updatedAt
 }
 
 model Customer {
@@ -98,7 +102,8 @@ model Appointment {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  workout WorkoutLog?
+  workout   WorkoutLog?
+  reminders Reminder[]
 
   @@index([startsAt])
   @@index([customerId])
@@ -124,24 +129,28 @@ model WorkoutLog {
 }
 
 model Reminder {
-  id         String       @id @default(cuid())
-  customerId String
-  customer   Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  packId     String?
-  pack       SessionPack? @relation(fields: [packId], references: [id], onDelete: SetNull)
-  kind       String
-  channel    String       @default("whatsapp")
-  payload    String
-  status     String       @default("pending")
-  attempts   Int          @default(0)
-  lastError  String?
-  sentAt     DateTime?
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+  id            String       @id @default(cuid())
+  customerId    String?
+  customer      Customer?    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  packId        String?
+  pack          SessionPack? @relation(fields: [packId], references: [id], onDelete: SetNull)
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  kind          String
+  channel       String       @default("whatsapp")
+  payload       String
+  status        String       @default("pending")
+  attempts      Int          @default(0)
+  lastError     String?
+  sentAt        DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   @@index([status])
   @@index([customerId])
   @@index([kind])
+  @@index([appointmentId])
+  @@index([kind, status])
 }
 
 model GraphRun {

@@ -45,5 +45,7 @@ export const GOALS = [
 ] as const;
 
 export const DEFAULT_THRESHOLD = 2;
+export const DEFAULT_DIGEST_TIME = "09:30";
 export const MAX_DISPATCH_ATTEMPTS = 3;
 export const STUDIO_TIMEZONE = "Asia/Makassar";
+export const OPENWA_DRAIN_INTERVAL_MS = 30_000;

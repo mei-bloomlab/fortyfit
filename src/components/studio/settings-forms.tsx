@@ -12,6 +12,7 @@ import {
   restoreExerciseAction,
   restorePackageAction,
   updateAdminPhoneAction,
+  updateMorningDigestAction,
   updateNotifySettingsAction,
   updatePackageAction,
 } from "@/lib/actions";
@@ -20,13 +21,16 @@ import { formatIdr, type CatalogExercise, type CatalogPackage } from "@/lib/stud
 export function NotifySettingsForm({
   threshold,
   autoNotifyAdmin,
+  customerThanksEnabled,
 }: {
   threshold: number;
   autoNotifyAdmin: boolean;
+  customerThanksEnabled: boolean;
 }) {
   return (
     <form action={updateNotifySettingsAction} className="grid gap-4">
       <input type="hidden" name="autoNotifyAdminField" value="1" />
+      <input type="hidden" name="customerThanksEnabledField" value="1" />
       <Field label="Kirim notice saat sisa sesi mencapai">
         <Input
           name="threshold"
@@ -37,9 +41,10 @@ export function NotifySettingsForm({
         />
       </Field>
       <p className="text-sm leading-6 text-muted-foreground">
-        Isi 2 artinya begitu sisa sesi jadi 2, 1, atau 0, admin dapat WA: nama
-        customer, nomor, program, dan sisa sesi. Satu notice per paket untuk tiap
-        jumlah sisa, supaya tidak spam.
+        Isi 2 artinya begitu sisa sesi jadi 2, 1, atau 0, admin dapat notice:
+        nama customer, nomor, program, dan sisa sesi. Satu notice per paket
+        untuk tiap jumlah sisa, supaya tidak spam. Ambang yang sama dipakai
+        ringkasan pagi dan tombol scan antrian.
       </p>
       <label className="flex items-start gap-3 rounded-xl border border-border/70 p-3">
         <input
@@ -53,12 +58,77 @@ export function NotifySettingsForm({
           <span className="block text-sm font-medium">Kirim otomatis ke WA admin</span>
           <span className="block text-sm leading-6 text-muted-foreground">
             Nyala: setelah sesi ditandai selesai dan sisa masuk ambang, notice
-            langsung masuk antrian ke nomor admin.
+            per customer masuk antrian ke nomor admin. Tidak menggantikan
+            ringkasan pagi.
+          </span>
+        </span>
+      </label>
+      <label className="flex items-start gap-3 rounded-xl border border-border/70 p-3">
+        <input
+          type="checkbox"
+          name="customerThanksEnabled"
+          value="1"
+          defaultChecked={customerThanksEnabled}
+          className="mt-1 size-4 accent-primary"
+        />
+        <span>
+          <span className="block text-sm font-medium">
+            Ucapan terima kasih ke customer setelah selesai
+          </span>
+          <span className="block text-sm leading-6 text-muted-foreground">
+            Nyala: setelah tombol selesai, customer dapat WA terima kasih plus
+            daftar gerakan dari catatan sesi. Kalau tidak ada gerakan, ucapan
+            tetap dikirim tanpa daftar palsu.
           </span>
         </span>
       </label>
       <div>
         <Button type="submit">Simpan notif</Button>
+      </div>
+    </form>
+  );
+}
+
+export function MorningDigestForm({
+  enabled,
+  time,
+  timezone,
+}: {
+  enabled: boolean;
+  time: string;
+  timezone: string;
+}) {
+  return (
+    <form action={updateMorningDigestAction} className="grid gap-4">
+      <input type="hidden" name="morningDigestEnabledField" value="1" />
+      <label className="flex items-start gap-3 rounded-xl border border-border/70 p-3">
+        <input
+          type="checkbox"
+          name="morningDigestEnabled"
+          value="1"
+          defaultChecked={enabled}
+          className="mt-1 size-4 accent-primary"
+        />
+        <span>
+          <span className="block text-sm font-medium">Kirim ringkasan pagi ke admin</span>
+          <span className="block text-sm leading-6 text-muted-foreground">
+            Satu WA berisi daftar customer aktif yang sisa sesinya di ambang.
+            Bukan satu WA per nama.
+          </span>
+        </span>
+      </label>
+      <Field label="Jam ringkasan pagi">
+        <Input name="morningDigestTime" type="time" required defaultValue={time} />
+      </Field>
+      <Field label="Zona waktu">
+        <Input name="timezone" required defaultValue={timezone} />
+      </Field>
+      <p className="text-sm leading-6 text-muted-foreground">
+        Default 09:30 Asia/Makassar (WITA). Kalau laptop nyala lebih siang,
+        ringkasan tetap dikirim sekali di drain pertama hari itu.
+      </p>
+      <div>
+        <Button type="submit">Simpan ringkasan pagi</Button>
       </div>
     </form>
   );
@@ -71,8 +141,8 @@ export function AdminPhoneForm({ adminPhone }: { adminPhone: string }) {
         <Input name="adminPhone" required defaultValue={adminPhone} placeholder="62851..." />
       </Field>
       <p className="text-sm leading-6 text-muted-foreground">
-        Pakai format 62, bukan 08. Notice sisa sesi dikirim ke nomor ini. OpenWA
-        masih mock di lingkungan ini, jadi pengiriman live tidak diblokir dari sini.
+        Pakai format 62, bukan 08. Notice sisa sesi dan ringkasan pagi dikirim ke
+        nomor ini. Ubah di sini saja — pemegang laptop tidak perlu edit kode.
       </p>
       <div>
         <Button type="submit">Simpan nomor</Button>

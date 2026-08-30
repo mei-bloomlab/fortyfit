@@ -13,7 +13,7 @@ import { StartSessionPanel } from "@/components/studio/session-workout-form";
 import { EmptyState } from "@/components/studio/empty-state";
 import { PageHeader } from "@/components/studio/page-header";
 import { scanAndDispatchAction } from "@/lib/actions";
-import { STATUS_LABEL, STATUS_TONE } from "@/lib/labels";
+import { STATUS_LABEL, STATUS_TONE, reminderHeadline } from "@/lib/labels";
 import { workoutLinesFromJson } from "@/lib/loops/workout-log";
 import { getDashboardData, listExercises } from "@/lib/queries";
 import { formatTime } from "@/lib/time";
@@ -171,7 +171,7 @@ export default async function HomePage() {
                 data.pendingReminders.map((item) => (
                   <div key={item.id} className="rounded-lg border border-border/70 px-3 py-2">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="font-medium">{item.customer.name}</p>
+                      <p className="font-medium">{reminderHeadline(item)}</p>
                       <Badge variant={STATUS_TONE[item.status] ?? "outline"}>
                         {STATUS_LABEL[item.status] ?? item.status}
                       </Badge>

@@ -34,7 +34,10 @@ async function main() {
       reminderThreshold: 2,
       adminPhone: "6285155070866",
       autoNotifyAdmin: true,
-      openWaMode: "mock",
+      openWaMode: "enqueue",
+      customerThanksEnabled: true,
+      morningDigestEnabled: true,
+      morningDigestTime: "09:30",
     },
   });
 

@@ -7,6 +7,7 @@ import {
 } from "@/lib/engineering/graph";
 import { DEFAULT_THRESHOLD, STUDIO_GRAPH_NAME } from "@/lib/engineering/rules";
 import { runAttendanceLoop } from "@/lib/loops/attendance";
+import { enqueueCustomerThanks } from "@/lib/loops/customer-thanks";
 import { runReminderDispatchLoop } from "@/lib/loops/reminder-dispatch";
 import {
   notifyAdminOnRemainingDrop,
@@ -65,6 +66,17 @@ export async function runOpsGraph(input: {
       where: { id: input.appointmentId },
       select: { packId: true },
     });
+    const thanks = await enqueueCustomerThanks(input.appointmentId);
+    if (thanks.createdId) {
+      state = {
+        ...appendTrace(state, {
+          node: "enqueue_reminder",
+          when: "queued",
+          note: thanks.reason,
+        }),
+        reminderIds: [...state.reminderIds, thanks.createdId],
+      };
+    }
     if (appointment?.packId && settings.autoNotifyAdmin) {
       const notice = await notifyAdminOnRemainingDrop(appointment.packId);
       if (notice.createdId) {

@@ -190,7 +190,7 @@ export function SessionSlotForm({
         key={startsAt ? String(startsAt) : "empty"}
         name="startsAt"
         type="datetime-local"
-        defaultValue={startsAt ? toLocalInputValue(new Date(startsAt)) : ""}
+        defaultValue={startsAt ? toLocalInputValue(startsAt) : ""}
         className="sm:max-w-xs"
       />
       <Button type="submit" size="sm">

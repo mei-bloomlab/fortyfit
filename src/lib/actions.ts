@@ -15,6 +15,7 @@ import { runOpsGraph } from "@/lib/ops-graph";
 import { normalizeDigestTime } from "@/lib/openwa/digest";
 import { parseSessionCount, sessionSlotRows } from "@/lib/session-slots";
 import { defaultSessionsForPackage, fallbackProgramName } from "@/lib/studio-catalog";
+import { parseStudioDateTime } from "@/lib/time";
 
 function readString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
@@ -204,7 +205,7 @@ export async function saveSessionSlotAction(formData: FormData) {
     await prisma.appointment.update({
       where: { id: appointmentId },
       data: {
-        startsAt: new Date(startsAt),
+        startsAt: parseStudioDateTime(startsAt),
         status: appointment.status === "completed" ? "completed" : "scheduled",
       },
     });
@@ -234,7 +235,7 @@ export async function scheduleOpenSlotAction(formData: FormData) {
   await prisma.appointment.update({
     where: { id: emptySlot.id },
     data: {
-      startsAt: new Date(startsAt),
+      startsAt: parseStudioDateTime(startsAt),
       status: "scheduled",
       location: "Studio Tabanan",
     },
@@ -265,7 +266,7 @@ export async function addAppointmentAction(formData: FormData) {
     await prisma.appointment.update({
       where: { id: emptySlot.id },
       data: {
-        startsAt: new Date(startsAt),
+        startsAt: parseStudioDateTime(startsAt),
         status: "scheduled",
         durationMin: Number(readString(formData, "durationMin") || "60"),
         location: readString(formData, "location") || "Studio Tabanan",
@@ -281,7 +282,7 @@ export async function addAppointmentAction(formData: FormData) {
         customerId,
         packId: pack?.id,
         slot: (last?.slot ?? 0) + 1,
-        startsAt: new Date(startsAt),
+        startsAt: parseStudioDateTime(startsAt),
         status: "scheduled",
         durationMin: Number(readString(formData, "durationMin") || "60"),
         location: readString(formData, "location") || "Studio Tabanan",

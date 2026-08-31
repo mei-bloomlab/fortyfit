@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Field } from "@/components/studio/field";
 import {
   archiveExerciseAction,
@@ -15,7 +16,15 @@ import {
   updateMorningDigestAction,
   updateNotifySettingsAction,
   updatePackageAction,
+  updateWaTemplatesAction,
 } from "@/lib/actions";
+import {
+  DEFAULT_ADMIN_NOTICE_TEMPLATE,
+  DEFAULT_CUSTOMER_MANUAL_TEMPLATE,
+  DEFAULT_CUSTOMER_THANKS_TEMPLATE,
+  DEFAULT_MORNING_DIGEST_TEMPLATE,
+  templateOrDefault,
+} from "@/lib/openwa/messages";
 import { formatIdr, type CatalogExercise, type CatalogPackage } from "@/lib/studio-catalog";
 
 export function NotifySettingsForm({
@@ -131,6 +140,76 @@ export function MorningDigestForm({
         <Button type="submit">Simpan ringkasan pagi</Button>
       </div>
     </form>
+  );
+}
+
+export function WaTemplatesForm({
+  adminNotice,
+  customerManual,
+  customerThanks,
+  morningDigest,
+}: {
+  adminNotice: string;
+  customerManual: string;
+  customerThanks: string;
+  morningDigest: string;
+}) {
+  return (
+    <form action={updateWaTemplatesAction} className="grid gap-6">
+      <p className="text-sm leading-6 text-muted-foreground">
+        Satu teks untuk semua customer. Variabel di dalam kurung kurawal diisi
+        otomatis saat pesan dibuat. Antrian yang sudah ada tidak berubah.
+        Kosongkan kotak lalu simpan untuk kembali ke teks bawaan.
+      </p>
+      <TemplateField
+        label="Notice admin — sisa sesi"
+        name="waTplAdminNotice"
+        defaultValue={templateOrDefault(adminNotice, DEFAULT_ADMIN_NOTICE_TEMPLATE)}
+        hints="{nama} nama customer · {telepon} nomor WA · {sisa} angka sisa sesi · {program} nama paket · {tindak} kalimat habis/tinggal Nx. Biarkan frasa sisa {sisa} sesi supaya notice tidak dobel."
+      />
+      <TemplateField
+        label="Pengingat manual ke customer"
+        name="waTplCustomerManual"
+        defaultValue={templateOrDefault(customerManual, DEFAULT_CUSTOMER_MANUAL_TEMPLATE)}
+        hints="{nama} · {telepon} · {sisa} angka sisa · {program} · {sisa_kalimat} kalimat sisa (habis atau masih ada)."
+      />
+      <TemplateField
+        label="Ucapan terima kasih setelah sesi"
+        name="waTplCustomerThanks"
+        defaultValue={templateOrDefault(customerThanks, DEFAULT_CUSTOMER_THANKS_TEMPLATE)}
+        hints="{nama} · {gerakan} judul plus daftar gerakan dari catatan sesi, atau kosong kalau tidak ada gerakan."
+      />
+      <TemplateField
+        label="Ringkasan pagi ke admin"
+        name="waTplMorningDigest"
+        defaultValue={templateOrDefault(morningDigest, DEFAULT_MORNING_DIGEST_TEMPLATE)}
+        hints="{tanggal} · {ambang} angka ambang · {daftar} daftar customer (atau kalimat kosong kalau tidak ada yang masuk ambang)."
+      />
+      <div>
+        <Button type="submit">Simpan teks WhatsApp</Button>
+      </div>
+    </form>
+  );
+}
+
+function TemplateField({
+  label,
+  name,
+  defaultValue,
+  hints,
+}: {
+  label: string;
+  name: string;
+  defaultValue: string;
+  hints: string;
+}) {
+  return (
+    <div className="grid gap-1.5">
+      <Field label={label}>
+        <Textarea name={name} defaultValue={defaultValue} rows={5} className="min-h-28" />
+      </Field>
+      <p className="text-sm leading-6 text-muted-foreground">{hints}</p>
+    </div>
   );
 }
 

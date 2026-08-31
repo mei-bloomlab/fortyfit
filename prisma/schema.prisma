@@ -18,6 +18,10 @@ model StudioSettings {
   lastMorningDigestOn    String?
   timezone               String   @default("Asia/Makassar")
   openWaMode             String   @default("enqueue")
+  waTplAdminNotice       String   @default("")
+  waTplCustomerManual    String   @default("")
+  waTplCustomerThanks    String   @default("")
+  waTplMorningDigest     String   @default("")
   updatedAt              DateTime @updatedAt
 }
 

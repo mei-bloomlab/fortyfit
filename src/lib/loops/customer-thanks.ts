@@ -48,10 +48,12 @@ export async function enqueueCustomerThanks(appointmentId: string): Promise<{
       channel: "whatsapp",
       payload: buildCustomerThanksMessage({
         name: appointment.customer.name,
+        phone: appointment.customer.phone,
         exercises: exercises.map((item) => ({
           name: item.name,
           sets: item.sets,
         })),
+        template: settings.waTplCustomerThanks,
       }),
     },
   });

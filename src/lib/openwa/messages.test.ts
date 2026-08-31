@@ -185,6 +185,14 @@ test("default templates substitute to the same wording as empty settings", () =>
     buildCustomerThanksMessage({ name: "Mei", exercises: [] }),
   );
   assert.equal(
+    buildCustomerThanksMessage({
+      name: "Mei",
+      exercises: [],
+      template: DEFAULT_CUSTOMER_THANKS_TEMPLATE.replace(/\n/g, "\r\n"),
+    }),
+    buildCustomerThanksMessage({ name: "Mei", exercises: [] }),
+  );
+  assert.equal(
     buildMorningDigestMessage({
       ...DIGEST_INPUT,
       template: DEFAULT_MORNING_DIGEST_TEMPLATE,
@@ -266,6 +274,13 @@ test("missing placeholder values fall back without breaking the message", () => 
   );
   assert.equal(
     normalizeStoredTemplate(DEFAULT_ADMIN_NOTICE_TEMPLATE, DEFAULT_ADMIN_NOTICE_TEMPLATE),
+    "",
+  );
+  assert.equal(
+    normalizeStoredTemplate(
+      DEFAULT_CUSTOMER_THANKS_TEMPLATE.replace(/\n/g, "\r\n"),
+      DEFAULT_CUSTOMER_THANKS_TEMPLATE,
+    ),
     "",
   );
   assert.equal(normalizeStoredTemplate("Halo {nama}", DEFAULT_ADMIN_NOTICE_TEMPLATE), "Halo {nama}");

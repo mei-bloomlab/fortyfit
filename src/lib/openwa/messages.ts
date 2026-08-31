@@ -110,7 +110,8 @@ export function applyTemplate(
 }
 
 export function normalizeStoredTemplate(value: string, fallback: string): string {
-  return value.trim() === fallback.trim() ? "" : value.trim();
+  const trimmed = value.replace(/\r\n/g, "\n").trim();
+  return trimmed === fallback.replace(/\r\n/g, "\n").trim() ? "" : trimmed;
 }
 
 export function templateOrDefault(saved: string | null | undefined, fallback: string): string {
@@ -149,7 +150,7 @@ export function buildLowSessionMessage(input: {
     `sisa ${input.remaining} sesi ${input.program}.`,
     followUpSentence(input.remaining),
   ].join(" ");
-  const template = input.template?.trim();
+  const template = normalizeStoredTemplate(input.template ?? "", DEFAULT_ADMIN_NOTICE_TEMPLATE);
   if (!template) return hardcoded;
   return applyTemplate(template, {
     nama: input.name || "customer",
@@ -178,7 +179,7 @@ export function buildCustomerManualMessage(input: {
     sisa,
     "Yuk datang latihan sesuai jadwal, atau kabari kami kalau perlu reschedule.",
   ].join(" ");
-  const template = input.template?.trim();
+  const template = normalizeStoredTemplate(input.template ?? "", DEFAULT_CUSTOMER_MANUAL_TEMPLATE);
   if (!template) return hardcoded;
   return applyTemplate(template, {
     nama: input.name || "customer",
@@ -220,7 +221,7 @@ export function buildCustomerThanksMessage(input: {
   if (gerakan) lines.push(gerakan);
   lines.push("Sampai ketemu di sesi berikutnya.");
   const hardcoded = lines.join("\n");
-  const template = input.template?.trim();
+  const template = normalizeStoredTemplate(input.template ?? "", DEFAULT_CUSTOMER_THANKS_TEMPLATE);
   if (!template) return hardcoded;
   return applyTemplate(template, {
     nama: input.name || "customer",
@@ -262,7 +263,7 @@ export function buildMorningDigestMessage(input: {
   const header = `FortyFit — ringkasan sisa sesi ${input.dateLabel} (ambang ${input.threshold})`;
   const daftar = formatDigestList(input.threshold, input.customers);
   const hardcoded = [header, "", daftar].join("\n");
-  const template = input.template?.trim();
+  const template = normalizeStoredTemplate(input.template ?? "", DEFAULT_MORNING_DIGEST_TEMPLATE);
   if (!template) return hardcoded;
   return applyTemplate(template, {
     tanggal: input.dateLabel,

@@ -12,6 +12,7 @@ import {
 import { id as localeId } from "date-fns/locale";
 import type { Appointment, Customer } from "@prisma/client";
 import { Button } from "@/components/ui/button";
+import { customerColorKey, customerPillTone } from "@/lib/customer-color";
 import { dayKey, formatTime } from "@/lib/time";
 import { cn } from "@/lib/utils";
 
@@ -80,21 +81,24 @@ export function CalendarMonth({
             >
               <p className="mb-1 text-xs font-medium">{format(day, "d")}</p>
               <div className="space-y-1">
-                {events.map((event) => (
-                  <Link
-                    key={event.id}
-                    href={`${eventBasePath}/${event.id}?month=${format(month, "yyyy-MM")}`}
-                    className={cn(
-                      "block rounded-md px-1.5 py-1 text-[11px] leading-4 hover:bg-primary/20",
-                      event.status === "completed"
-                        ? "bg-muted text-muted-foreground"
-                        : "bg-primary/12 text-foreground",
-                    )}
-                  >
-                    <span className="font-medium">{formatTime(event.startsAt)}</span>{" "}
-                    {event.customer.name}
-                  </Link>
-                ))}
+                {events.map((event) => {
+                  const tone = customerPillTone(customerColorKey(event.customer));
+                  const completed = event.status === "completed";
+                  return (
+                    <Link
+                      key={event.id}
+                      href={`${eventBasePath}/${event.id}?month=${format(month, "yyyy-MM")}`}
+                      className="block rounded-md px-1.5 py-1 text-[11px] leading-4 transition-[filter] hover:brightness-125"
+                      style={{
+                        backgroundColor: completed ? tone.completedBackground : tone.background,
+                        color: completed ? tone.completedColor : tone.color,
+                      }}
+                    >
+                      <span className="font-medium">{formatTime(event.startsAt)}</span>{" "}
+                      {event.customer.name}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           );

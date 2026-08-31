@@ -75,6 +75,7 @@ export async function enqueueMorningDigestIfDue(now = new Date()): Promise<{
           program: pack.program,
           remaining: pack.remaining,
         })),
+        template: settings.waTplMorningDigest,
       }),
     },
   });

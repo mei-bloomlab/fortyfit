@@ -12,6 +12,7 @@ import {
   MorningDigestForm,
   NotifySettingsForm,
   PackageCatalog,
+  WaTemplatesForm,
 } from "@/components/studio/settings-forms";
 import { WhatsAppQrPanel } from "@/components/studio/whatsapp-qr-panel";
 import { WipeCustomersForm } from "@/components/studio/wipe-customers";
@@ -28,7 +29,7 @@ export default async function SettingPage() {
       <PageHeader
         eyebrow="Setting"
         title="Pengaturan studio"
-        description="Scan WhatsApp pengirim, atur notif sisa sesi, ringkasan pagi, nomor WA admin, paket, dan jenis latihan. Perubahan tersimpan di database — tidak perlu deploy ulang."
+        description="Scan WhatsApp pengirim, atur notif sisa sesi, teks WhatsApp, ringkasan pagi, nomor WA admin, paket, dan jenis latihan. Perubahan tersimpan di database — tidak perlu deploy ulang."
       />
 
       <div className="grid gap-6">
@@ -65,6 +66,25 @@ export default async function SettingPage() {
               enabled={settings.morningDigestEnabled}
               time={settings.morningDigestTime}
               timezone={settings.timezone}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Teks WhatsApp</CardTitle>
+            <CardDescription>
+              Ubah wording notice, pengingat, ucapan terima kasih, dan ringkasan
+              pagi. Bukan per customer — satu template per jenis. Sidecar tetap
+              mengirim dari antrian yang sama.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <WaTemplatesForm
+              adminNotice={settings.waTplAdminNotice}
+              customerManual={settings.waTplCustomerManual}
+              customerThanks={settings.waTplCustomerThanks}
+              morningDigest={settings.waTplMorningDigest}
             />
           </CardContent>
         </Card>

@@ -4,10 +4,18 @@ import {
   ADMIN_NOTICE_KIND,
   CUSTOMER_MANUAL_KIND,
   CUSTOMER_THANKS_KIND,
+  DEFAULT_ADMIN_NOTICE_TEMPLATE,
+  DEFAULT_CUSTOMER_MANUAL_TEMPLATE,
+  DEFAULT_CUSTOMER_THANKS_TEMPLATE,
+  DEFAULT_MORNING_DIGEST_TEMPLATE,
   MORNING_DIGEST_KIND,
+  applyTemplate,
+  buildCustomerManualMessage,
   buildCustomerThanksMessage,
+  buildLowSessionMessage,
   buildMorningDigestMessage,
   destinationForKind,
+  normalizeStoredTemplate,
   reminderHeadline,
 } from "./messages";
 import { shouldCountDispatchAttempt } from "./adapter";
@@ -77,6 +85,205 @@ test("digest reminder has an admin headline when no customer is attached", () =>
     reminderHeadline({ kind: MORNING_DIGEST_KIND }),
     "Ringkasan pagi admin",
   );
+});
+
+const LOW_SESSION_INPUT = {
+  name: "Putu Lestari",
+  phone: "081238110005",
+  remaining: 0,
+  program: "Fat Loss Starter",
+};
+
+const MANUAL_INPUT = {
+  name: "Mei",
+  remaining: 3,
+  program: "Fat Loss",
+};
+
+const THANKS_EXERCISES = [
+  { name: "Goblet squat", sets: "3x6" },
+  { name: "Bird dog", sets: "3x6/sisi" },
+];
+
+const DIGEST_INPUT = {
+  dateLabel: "30 Agu 2026",
+  threshold: 2,
+  customers: [
+    { name: "I Gede Putra", phone: "081238110002", program: "Fat Loss Starter", remaining: 1 },
+    { name: "Putu Lestari", phone: "081238110005", program: "Fat Loss Starter", remaining: 0 },
+  ],
+};
+
+test("empty template uses today's hardcoded wording", () => {
+  assert.equal(
+    buildLowSessionMessage({ ...LOW_SESSION_INPUT, template: "" }),
+    buildLowSessionMessage(LOW_SESSION_INPUT),
+  );
+  assert.equal(
+    buildLowSessionMessage({ ...LOW_SESSION_INPUT, remaining: 2 }),
+    "Notice FortyFit: Putu Lestari (081238110005) sisa 2 sesi Fat Loss Starter. Tinggal 2x lagi habis. Follow-up perpanjang.",
+  );
+  assert.equal(
+    buildLowSessionMessage(LOW_SESSION_INPUT),
+    "Notice FortyFit: Putu Lestari (081238110005) sisa 0 sesi Fat Loss Starter. Paket sudah habis. Follow-up perpanjang.",
+  );
+  assert.equal(
+    buildCustomerManualMessage({ ...MANUAL_INPUT, template: "   " }),
+    "Hai Mei, ini pengingat dari FortyFit Studio Tabanan. Sisa sesimu 3 untuk program Fat Loss. Yuk datang latihan sesuai jadwal, atau kabari kami kalau perlu reschedule.",
+  );
+  assert.equal(
+    buildCustomerManualMessage({ name: "Mei", remaining: 0, program: "Fat Loss" }),
+    "Hai Mei, ini pengingat dari FortyFit Studio Tabanan. Paket sesimu sudah habis. Yuk datang latihan sesuai jadwal, atau kabari kami kalau perlu reschedule.",
+  );
+  assert.equal(
+    buildCustomerThanksMessage({ name: "Mei", exercises: [], template: null }),
+    buildCustomerThanksMessage({ name: "Mei", exercises: [] }),
+  );
+  assert.equal(
+    buildMorningDigestMessage({ ...DIGEST_INPUT, customers: [], template: undefined }),
+    buildMorningDigestMessage({ ...DIGEST_INPUT, customers: [] }),
+  );
+});
+
+test("default templates substitute to the same wording as empty settings", () => {
+  assert.equal(
+    buildLowSessionMessage({
+      ...LOW_SESSION_INPUT,
+      template: DEFAULT_ADMIN_NOTICE_TEMPLATE,
+    }),
+    buildLowSessionMessage(LOW_SESSION_INPUT),
+  );
+  assert.equal(
+    buildLowSessionMessage({
+      ...LOW_SESSION_INPUT,
+      remaining: 1,
+      template: DEFAULT_ADMIN_NOTICE_TEMPLATE,
+    }),
+    buildLowSessionMessage({ ...LOW_SESSION_INPUT, remaining: 1 }),
+  );
+  assert.equal(
+    buildCustomerManualMessage({
+      ...MANUAL_INPUT,
+      template: DEFAULT_CUSTOMER_MANUAL_TEMPLATE,
+    }),
+    buildCustomerManualMessage(MANUAL_INPUT),
+  );
+  assert.equal(
+    buildCustomerThanksMessage({
+      name: "Made Ayu",
+      exercises: THANKS_EXERCISES,
+      template: DEFAULT_CUSTOMER_THANKS_TEMPLATE,
+    }),
+    buildCustomerThanksMessage({ name: "Made Ayu", exercises: THANKS_EXERCISES }),
+  );
+  assert.equal(
+    buildCustomerThanksMessage({
+      name: "Mei",
+      exercises: [],
+      template: DEFAULT_CUSTOMER_THANKS_TEMPLATE,
+    }),
+    buildCustomerThanksMessage({ name: "Mei", exercises: [] }),
+  );
+  assert.equal(
+    buildCustomerThanksMessage({
+      name: "Mei",
+      exercises: [],
+      template: DEFAULT_CUSTOMER_THANKS_TEMPLATE.replace(/\n/g, "\r\n"),
+    }),
+    buildCustomerThanksMessage({ name: "Mei", exercises: [] }),
+  );
+  assert.equal(
+    buildMorningDigestMessage({
+      ...DIGEST_INPUT,
+      template: DEFAULT_MORNING_DIGEST_TEMPLATE,
+    }),
+    buildMorningDigestMessage(DIGEST_INPUT),
+  );
+  assert.equal(
+    buildMorningDigestMessage({
+      ...DIGEST_INPUT,
+      customers: [],
+      template: DEFAULT_MORNING_DIGEST_TEMPLATE,
+    }),
+    buildMorningDigestMessage({ ...DIGEST_INPUT, customers: [] }),
+  );
+});
+
+test("custom templates fill Indonesian placeholders", () => {
+  assert.equal(
+    buildLowSessionMessage({
+      ...LOW_SESSION_INPUT,
+      remaining: 2,
+      template: "Hai admin, {nama} sisa {sisa} ({program}) {telepon}",
+    }),
+    "Hai admin, Putu Lestari sisa 2 (Fat Loss Starter) 081238110005",
+  );
+  assert.equal(
+    buildCustomerManualMessage({
+      ...MANUAL_INPUT,
+      template: "Halo {nama}, sisa {sisa} untuk {program}.",
+    }),
+    "Halo Mei, sisa 3 untuk Fat Loss.",
+  );
+  const thanks = buildCustomerThanksMessage({
+    name: "Made Ayu",
+    exercises: THANKS_EXERCISES,
+    template: "Makasih {nama}.\n{gerakan}",
+  });
+  assert.match(thanks, /Makasih Made Ayu/);
+  assert.match(thanks, /Goblet squat \(3x6\)/);
+  assert.match(thanks, /Bird dog \(3x6\/sisi\)/);
+  assert.equal(
+    buildMorningDigestMessage({
+      ...DIGEST_INPUT,
+      template: "Digest {tanggal} ambang {ambang}\n{daftar}",
+    }).split("\n")[0],
+    "Digest 30 Agu 2026 ambang 2",
+  );
+});
+
+test("missing placeholder values fall back without breaking the message", () => {
+  assert.equal(
+    applyTemplate("Hai {nama}, program {program} sisa {sisa}", {
+      nama: "Mei",
+      program: "FortyFit",
+      sisa: "0",
+    }),
+    "Hai Mei, program FortyFit sisa 0",
+  );
+  assert.equal(
+    applyTemplate("Hai {nama} {xyz}", { nama: "Mei" }),
+    "Hai Mei {xyz}",
+  );
+  assert.equal(
+    buildCustomerManualMessage({
+      name: "",
+      remaining: 2,
+      program: "",
+      template: "Hai {nama} / {program}",
+    }),
+    "Hai customer / FortyFit",
+  );
+  assert.equal(
+    buildCustomerThanksMessage({
+      name: "Mei",
+      exercises: [],
+      template: "Hai {nama}.\n{gerakan}\nSampai jumpa.",
+    }),
+    "Hai Mei.\nSampai jumpa.",
+  );
+  assert.equal(
+    normalizeStoredTemplate(DEFAULT_ADMIN_NOTICE_TEMPLATE, DEFAULT_ADMIN_NOTICE_TEMPLATE),
+    "",
+  );
+  assert.equal(
+    normalizeStoredTemplate(
+      DEFAULT_CUSTOMER_THANKS_TEMPLATE.replace(/\n/g, "\r\n"),
+      DEFAULT_CUSTOMER_THANKS_TEMPLATE,
+    ),
+    "",
+  );
+  assert.equal(normalizeStoredTemplate("Halo {nama}", DEFAULT_ADMIN_NOTICE_TEMPLATE), "Halo {nama}");
 });
 
 test("localhost / enqueue failures do not burn dispatch attempts", () => {

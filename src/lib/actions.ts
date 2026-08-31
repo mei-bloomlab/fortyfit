@@ -13,6 +13,13 @@ import {
 import { exercisesFromFormData, saveWorkoutLog } from "@/lib/loops/workout-log";
 import { runOpsGraph } from "@/lib/ops-graph";
 import { normalizeDigestTime } from "@/lib/openwa/digest";
+import {
+  DEFAULT_ADMIN_NOTICE_TEMPLATE,
+  DEFAULT_CUSTOMER_MANUAL_TEMPLATE,
+  DEFAULT_CUSTOMER_THANKS_TEMPLATE,
+  DEFAULT_MORNING_DIGEST_TEMPLATE,
+  normalizeStoredTemplate,
+} from "@/lib/openwa/messages";
 import { parseSessionCount, sessionSlotRows } from "@/lib/session-slots";
 import { defaultSessionsForPackage, fallbackProgramName } from "@/lib/studio-catalog";
 import { parseStudioDateTime } from "@/lib/time";
@@ -498,6 +505,42 @@ export async function updateAdminPhoneAction(formData: FormData) {
     where: { id: "fortyfit" },
     update: { adminPhone },
     create: { id: "fortyfit", adminPhone },
+  });
+  refreshStudio();
+}
+
+export async function updateWaTemplatesAction(formData: FormData) {
+  const waTplAdminNotice = normalizeStoredTemplate(
+    readString(formData, "waTplAdminNotice"),
+    DEFAULT_ADMIN_NOTICE_TEMPLATE,
+  );
+  const waTplCustomerManual = normalizeStoredTemplate(
+    readString(formData, "waTplCustomerManual"),
+    DEFAULT_CUSTOMER_MANUAL_TEMPLATE,
+  );
+  const waTplCustomerThanks = normalizeStoredTemplate(
+    readString(formData, "waTplCustomerThanks"),
+    DEFAULT_CUSTOMER_THANKS_TEMPLATE,
+  );
+  const waTplMorningDigest = normalizeStoredTemplate(
+    readString(formData, "waTplMorningDigest"),
+    DEFAULT_MORNING_DIGEST_TEMPLATE,
+  );
+  await prisma.studioSettings.upsert({
+    where: { id: "fortyfit" },
+    update: {
+      waTplAdminNotice,
+      waTplCustomerManual,
+      waTplCustomerThanks,
+      waTplMorningDigest,
+    },
+    create: {
+      id: "fortyfit",
+      waTplAdminNotice,
+      waTplCustomerManual,
+      waTplCustomerThanks,
+      waTplMorningDigest,
+    },
   });
   refreshStudio();
 }

@@ -217,6 +217,11 @@ export async function enqueueCustomerManualReminder(customerId: string) {
   });
   if (!customer) return null;
 
+  const settings = await prisma.studioSettings.upsert({
+    where: { id: "fortyfit" },
+    update: {},
+    create: { id: "fortyfit" },
+  });
   const pack = customer.packs[0];
   const reminder = await prisma.reminder.create({
     data: {
@@ -226,8 +231,10 @@ export async function enqueueCustomerManualReminder(customerId: string) {
       channel: "whatsapp",
       payload: buildCustomerManualMessage({
         name: customer.name,
+        phone: customer.phone,
         remaining: pack?.remaining ?? 0,
         program: pack?.program ?? "FortyFit",
+        template: settings.waTplCustomerManual,
       }),
     },
   });

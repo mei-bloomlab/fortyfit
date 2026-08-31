@@ -64,6 +64,11 @@ export async function enqueueLowSessionReminders(
   observation?: BalanceObservation,
 ): Promise<{ createdIds: string[]; skipped: number }> {
   const snapshot = observation ?? (await observeSessionBalance());
+  const settings = await prisma.studioSettings.upsert({
+    where: { id: "fortyfit" },
+    update: {},
+    create: { id: "fortyfit" },
+  });
   const createdIds: string[] = [];
   let skipped = 0;
 
@@ -83,6 +88,7 @@ export async function enqueueLowSessionReminders(
           phone: pack.phone,
           remaining: pack.remaining,
           program: pack.program,
+          template: settings.waTplAdminNotice,
         }),
       },
     });
@@ -137,6 +143,7 @@ export async function notifyAdminOnRemainingDrop(packId: string): Promise<{
         phone: pack.customer.phone,
         remaining: pack.remaining,
         program: pack.program,
+        template: settings.waTplAdminNotice,
       }),
     },
   });

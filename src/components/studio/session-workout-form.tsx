@@ -13,7 +13,7 @@ import type { CatalogExercise } from "@/lib/studio-catalog";
 type Line = WorkoutLineDraft;
 
 function emptyLine(exercises: CatalogExercise[]): Line {
-  return { name: exercises[0]?.name ?? "", set: "", rep: "" };
+  return { name: exercises[0]?.name ?? "", set: "", rep: "", kg: "" };
 }
 
 function ExerciseRows({
@@ -32,7 +32,7 @@ function ExerciseRows({
       {rows.map((row, index) => (
         <div
           key={index}
-          className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_4.5rem_auto_4.5rem_auto_auto] sm:items-end"
+          className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_4.5rem_auto_4.5rem_auto_4.5rem_auto_auto] sm:items-end"
         >
           <Field label="Latihan">
             <select
@@ -95,6 +95,22 @@ function ExerciseRows({
             />
           </Field>
           <p className="hidden pb-2 text-sm text-muted-foreground sm:block">rep</p>
+          <Field label="kg">
+            <Input
+              name="exerciseKg"
+              type="number"
+              min={0}
+              step="any"
+              inputMode="decimal"
+              value={row.kg ?? ""}
+              onChange={(event) => {
+                const next = [...rows];
+                next[index] = { ...next[index], kg: event.target.value };
+                setRows(next);
+              }}
+            />
+          </Field>
+          <p className="hidden pb-2 text-sm text-muted-foreground sm:block">kg</p>
           {rows.length > 1 ? (
             <Button
               type="button"

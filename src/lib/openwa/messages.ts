@@ -1,3 +1,5 @@
+import { formatExerciseDetail } from "@/lib/workout-kg";
+
 export const ADMIN_NOTICE_KIND = "low_sessions";
 export const CUSTOMER_MANUAL_KIND = "customer_manual";
 export const CUSTOMER_THANKS_KIND = "customer_thanks";
@@ -193,17 +195,21 @@ export function buildCustomerManualMessage(input: {
 export type ThanksExercise = {
   name: string;
   sets?: string;
+  kg?: number;
 };
 
 export function formatExerciseList(exercises: ThanksExercise[]): string {
   const named = exercises
-    .map((item) => ({ name: item.name.trim(), sets: item.sets?.trim() }))
+    .map((item) => ({
+      name: item.name.trim(),
+      detail: formatExerciseDetail(item.sets, item.kg),
+    }))
     .filter((item) => item.name.length > 0);
   if (named.length === 0) return "";
   return [
     "Gerakan yang kamu selesaikan hari ini:",
     ...named.map((exercise) =>
-      exercise.sets ? `• ${exercise.name} (${exercise.sets})` : `• ${exercise.name}`,
+      exercise.detail ? `• ${exercise.name} (${exercise.detail})` : `• ${exercise.name}`,
     ),
   ].join("\n");
 }

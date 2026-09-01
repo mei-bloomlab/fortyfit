@@ -1,11 +1,13 @@
 import { prisma } from "@/lib/db";
 import { runLoop, type LoopTick } from "@/lib/engineering/loop";
+import { parseOptionalKg } from "@/lib/workout-kg";
 
 export type WorkoutExercise = {
   name: string;
   sets?: string;
   set?: number;
   rep?: number;
+  kg?: number;
   note?: string;
 };
 
@@ -33,10 +35,12 @@ export function normalizeExercise(item: WorkoutExercise): WorkoutExercise {
   const fromSets = item.sets?.match(/^(\d+)\s*[x×]\s*(\d+)/i);
   const set = item.set ?? (fromSets ? Number(fromSets[1]) : undefined);
   const rep = item.rep ?? (fromSets ? Number(fromSets[2]) : undefined);
+  const kg = parseOptionalKg(item.kg);
   return {
     name: item.name.trim(),
     set,
     rep,
+    kg,
     sets: formatSets(set, rep, item.sets),
     note: item.note,
   };
@@ -46,6 +50,7 @@ export function exercisesFromFormData(formData: FormData): WorkoutExercise[] {
   const names = formData.getAll("exerciseName").map((value) => String(value).trim());
   const sets = formData.getAll("exerciseSet").map((value) => String(value).trim());
   const reps = formData.getAll("exerciseRep").map((value) => String(value).trim());
+  const kgs = formData.getAll("exerciseKg").map((value) => String(value).trim());
 
   if (names.length > 0) {
     return names
@@ -57,6 +62,7 @@ export function exercisesFromFormData(formData: FormData): WorkoutExercise[] {
           name,
           set: Number.isFinite(set) && set > 0 ? set : undefined,
           rep: Number.isFinite(rep) && rep > 0 ? rep : undefined,
+          kg: parseOptionalKg(kgs[index]),
         });
       })
       .filter((item): item is WorkoutExercise => Boolean(item));
@@ -67,8 +73,8 @@ export function exercisesFromFormData(formData: FormData): WorkoutExercise[] {
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line) => {
-      const [name, setsText] = line.split("|").map((part) => part.trim());
-      return normalizeExercise({ name, sets: setsText });
+      const [name, setsText, kgText] = line.split("|").map((part) => part.trim());
+      return normalizeExercise({ name, sets: setsText, kg: parseOptionalKg(kgText) });
     });
 }
 
@@ -98,7 +104,7 @@ export async function saveWorkoutLog(input: WorkoutInput) {
   return prisma.workoutLog.create({ data });
 }
 
-export type WorkoutLineDraft = { name: string; set: string; rep: string };
+export type WorkoutLineDraft = { name: string; set: string; rep: string; kg: string };
 
 export function workoutLinesFromJson(value?: string | null): WorkoutLineDraft[] {
   if (!value) return [];
@@ -106,6 +112,7 @@ export function workoutLinesFromJson(value?: string | null): WorkoutLineDraft[] 
     name: item.name,
     set: item.set != null ? String(item.set) : "",
     rep: item.rep != null ? String(item.rep) : "",
+    kg: item.kg != null ? String(item.kg) : "",
   }));
 }
 

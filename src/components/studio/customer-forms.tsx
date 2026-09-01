@@ -218,7 +218,7 @@ export function AddPackDialog({
   );
 }
 
-type ExerciseLine = { key: string; name: string; set: string; rep: string };
+type ExerciseLine = { key: string; name: string; set: string; rep: string; kg: string };
 
 function nextLineKey() {
   return `line-${Math.random().toString(36).slice(2, 9)}`;
@@ -227,21 +227,22 @@ function nextLineKey() {
 function ExerciseLinesField({ exercises }: { exercises: CatalogExercise[] }) {
   const first = exercises[0]?.name ?? "";
   const [rows, setRows] = useState<ExerciseLine[]>([
-    { key: "line-1", name: first, set: "3", rep: "8" },
+    { key: "line-1", name: first, set: "3", rep: "8", kg: "" },
   ]);
 
   return (
     <div className="grid gap-2">
-      <div className="hidden text-xs text-muted-foreground sm:grid sm:grid-cols-[minmax(0,1fr)_4.5rem_4.5rem_auto] sm:gap-2">
+      <div className="hidden text-xs text-muted-foreground sm:grid sm:grid-cols-[minmax(0,1fr)_4.5rem_4.5rem_4.5rem_auto] sm:gap-2">
         <span>Gerakan</span>
         <span>Set</span>
         <span>Rep</span>
+        <span>kg</span>
         <span className="sr-only">Hapus</span>
       </div>
       {rows.map((row, index) => (
         <div
           key={row.key}
-          className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_4.5rem_4.5rem_auto] sm:items-end"
+          className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_4.5rem_4.5rem_4.5rem_auto] sm:items-end"
         >
           <Field label="Gerakan">
             <select
@@ -297,6 +298,22 @@ function ExerciseLinesField({ exercises }: { exercises: CatalogExercise[] }) {
               }}
             />
           </Field>
+          <Field label="kg">
+            <Input
+              name="exerciseKg"
+              type="number"
+              min={0}
+              step="any"
+              inputMode="decimal"
+              placeholder="—"
+              value={row.kg}
+              onChange={(event) => {
+                const next = [...rows];
+                next[index] = { ...next[index], kg: event.target.value };
+                setRows(next);
+              }}
+            />
+          </Field>
           {rows.length > 1 ? (
             <Button
               type="button"
@@ -318,7 +335,7 @@ function ExerciseLinesField({ exercises }: { exercises: CatalogExercise[] }) {
           size="sm"
           variant="outline"
           onClick={() =>
-            setRows([...rows, { key: nextLineKey(), name: first, set: "3", rep: "8" }])
+            setRows([...rows, { key: nextLineKey(), name: first, set: "3", rep: "8", kg: "" }])
           }
         >
           Tambah gerakan

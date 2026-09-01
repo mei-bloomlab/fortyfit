@@ -32,6 +32,22 @@ test("thank-you includes exercise names when a log exists", () => {
   assert.match(payload, /Goblet squat/);
   assert.match(payload, /Bird dog/);
   assert.match(payload, /3x6/);
+  assert.doesNotMatch(payload, /0kg/);
+});
+
+test("thank-you includes kg only when a load was logged", () => {
+  const withKg = buildCustomerThanksMessage({
+    name: "Calvin",
+    exercises: [{ name: "Goblet squat", sets: "3x6", kg: 12 }],
+  });
+  assert.match(withKg, /Goblet squat \(3x6, 12kg\)/);
+
+  const emptyKg = buildCustomerThanksMessage({
+    name: "Calvin",
+    exercises: [{ name: "Squat", sets: "3x8" }],
+  });
+  assert.match(emptyKg, /Squat \(3x8\)/);
+  assert.doesNotMatch(emptyKg, /kg/);
 });
 
 test("thank-you stays a greeting when no exercises were logged", () => {

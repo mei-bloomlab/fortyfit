@@ -317,6 +317,7 @@ function CustomerScheduleForm({
                 customerId={customer.id}
                 customerName={customer.name}
                 exercises={exercises}
+                startsAt={item.startsAt}
               />
             </div>
           ))}

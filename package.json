@@ -12,7 +12,7 @@
     "openwa": "node scripts/openwa-run.mjs",
     "openwa:bridge": "node scripts/openwa-bridge.mjs",
     "openwa:drain": "tsx scripts/openwa-drain.ts",
-    "test": "tsx --test src/lib/time.test.ts src/lib/customer-color.test.ts src/lib/loops/workout-log.test.ts src/lib/openwa/messages.test.ts src/lib/openwa/digest.test.ts src/lib/openwa/sidecar-browser.test.ts scripts/openwa-http.test.mjs scripts/openwa-launch.test.mjs",
+    "test": "tsx --test src/lib/time.test.ts src/lib/customer-color.test.ts src/lib/scheduling.test.ts src/lib/loops/workout-log.test.ts src/lib/openwa/messages.test.ts src/lib/openwa/digest.test.ts src/lib/openwa/sidecar-browser.test.ts scripts/openwa-http.test.mjs scripts/openwa-launch.test.mjs",
     "test:openwa": "tsx scripts/verify-openwa-flow.ts",
     "postinstall": "prisma generate"
   },

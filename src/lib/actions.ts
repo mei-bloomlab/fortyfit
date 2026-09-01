@@ -20,6 +20,7 @@ import {
   DEFAULT_MORNING_DIGEST_TEMPLATE,
   normalizeStoredTemplate,
 } from "@/lib/openwa/messages";
+import { rescheduleTarget } from "@/lib/scheduling";
 import { parseSessionCount, sessionSlotRows } from "@/lib/session-slots";
 import { defaultSessionsForPackage, fallbackProgramName } from "@/lib/studio-catalog";
 import { parseStudioDateTime } from "@/lib/time";
@@ -384,6 +385,32 @@ export async function cancelAppointmentAction(formData: FormData) {
   revalidatePath("/admin/jadwal");
   revalidatePath("/admin/customers");
   revalidatePath("/admin/calendar");
+  revalidatePath(`/admin/customers/${appointment.customerId}`);
+  revalidatePath(`/admin/jadwal/${appointmentId}`);
+  redirect(studioPath(readString(formData, "redirectTo") || "/admin/jadwal"));
+}
+
+export async function rescheduleAppointmentAction(formData: FormData) {
+  "use server";
+
+  const appointmentId = readString(formData, "appointmentId");
+  const startsAt = readString(formData, "startsAt");
+  if (!appointmentId || !startsAt) return;
+
+  const appointment = await prisma.appointment.findUnique({
+    where: { id: appointmentId },
+  });
+  if (!appointment) return;
+
+  const target = rescheduleTarget(appointment.status, startsAt);
+  if (!target) return;
+
+  await prisma.appointment.update({
+    where: { id: appointmentId },
+    data: target,
+  });
+
+  refreshStudio();
   revalidatePath(`/admin/customers/${appointment.customerId}`);
   revalidatePath(`/admin/jadwal/${appointmentId}`);
   redirect(studioPath(readString(formData, "redirectTo") || "/admin/jadwal"));

@@ -92,6 +92,7 @@ export default async function AppointmentPage({
               customerName={appointment.customer.name}
               redirectTo={calendarHref}
               exercises={exercises}
+              startsAt={appointment.startsAt}
               initialLines={workoutLinesFromJson(appointment.workout?.exercisesJson)}
             />
           ) : appointment.status === "completed" ? (

@@ -8,7 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CancelAppointmentButton } from "@/components/studio/appointment-actions";
+import {
+  CancelAppointmentButton,
+  RescheduleAppointmentPanel,
+} from "@/components/studio/appointment-actions";
 import { StartSessionPanel } from "@/components/studio/session-workout-form";
 import { EmptyState } from "@/components/studio/empty-state";
 import { PageHeader } from "@/components/studio/page-header";
@@ -87,11 +90,19 @@ export default async function HomePage() {
                           {STATUS_LABEL[item.status] ?? item.status}
                         </Badge>
                         {item.status === "scheduled" ? (
-                          <CancelAppointmentButton
-                            appointmentId={item.id}
-                            redirectTo="/admin"
-                            size="sm"
-                          />
+                          <>
+                            <RescheduleAppointmentPanel
+                              appointmentId={item.id}
+                              startsAt={item.startsAt}
+                              redirectTo="/admin"
+                              size="sm"
+                            />
+                            <CancelAppointmentButton
+                              appointmentId={item.id}
+                              redirectTo="/admin"
+                              size="sm"
+                            />
+                          </>
                         ) : (
                           <Button
                             variant="outline"

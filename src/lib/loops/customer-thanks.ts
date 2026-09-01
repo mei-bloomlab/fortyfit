@@ -52,6 +52,7 @@ export async function enqueueCustomerThanks(appointmentId: string): Promise<{
         exercises: exercises.map((item) => ({
           name: item.name,
           sets: item.sets,
+          kg: item.kg,
         })),
         template: settings.waTplCustomerThanks,
       }),

@@ -26,10 +26,11 @@ function listen(handler) {
   });
 }
 
-async function withServer(state, token, run) {
+async function withServer(state, token, run, resetSession) {
   const { server, base } = await listen(
     createOpenWaHandler({
       getState: () => state,
+      resetSession,
       token,
       port: 43201,
     }),
@@ -142,6 +143,40 @@ test("CORS and private-network preflight succeed from a public admin origin", as
 
       const health = await fetch(`${base}/health`, { headers: { Origin: origin } });
       assert.equal(health.headers.get("access-control-allow-origin"), origin);
+    },
+  );
+});
+
+test("POST /logout unlinks the wrong number and reports the new QR wait", async () => {
+  let calls = 0;
+  await withServer(
+    { ready: true, detail: READY_DETAIL, qrDataUrl: null, client: null },
+    "",
+    async (base) => {
+      const res = await fetch(`${base}/logout`, { method: "POST" });
+      assert.equal(res.status, 200);
+      const body = await res.json();
+      assert.equal(body.ok, true);
+      assert.match(body.detail, /QR baru/);
+      assert.equal(calls, 1);
+    },
+    async () => {
+      calls += 1;
+      return "Tautan WhatsApp dilepas. QR baru sedang dibuat.";
+    },
+  );
+});
+
+test("POST /logout says so plainly when the sidecar cannot reset", async () => {
+  await withServer(
+    { ready: true, detail: READY_DETAIL, qrDataUrl: null, client: null },
+    "",
+    async (base) => {
+      const res = await fetch(`${base}/logout`, { method: "POST" });
+      assert.equal(res.status, 501);
+      const body = await res.json();
+      assert.equal(body.ok, false);
+      assert.match(body.error, /npm run openwa/);
     },
   );
 });

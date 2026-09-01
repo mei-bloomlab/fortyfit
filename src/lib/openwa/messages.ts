@@ -1,11 +1,11 @@
 export const ADMIN_NOTICE_KIND = "low_sessions";
-export const CUSTOMER_MANUAL_KIND = "customer_manual";
+export const ADMIN_MANUAL_KIND = "admin_manual";
 export const CUSTOMER_THANKS_KIND = "customer_thanks";
 export const MORNING_DIGEST_KIND = "morning_digest";
 
 export const REMINDER_KINDS = [
   ADMIN_NOTICE_KIND,
-  CUSTOMER_MANUAL_KIND,
+  ADMIN_MANUAL_KIND,
   CUSTOMER_THANKS_KIND,
   MORNING_DIGEST_KIND,
 ] as const;
@@ -15,8 +15,8 @@ export type ReminderKind = (typeof REMINDER_KINDS)[number];
 export const DEFAULT_ADMIN_NOTICE_TEMPLATE =
   "Notice FortyFit: {nama} ({telepon}) sisa {sisa} sesi {program}. {tindak}";
 
-export const DEFAULT_CUSTOMER_MANUAL_TEMPLATE =
-  "Hai {nama}, ini pengingat dari FortyFit Studio Tabanan. {sisa_kalimat} Yuk datang latihan sesuai jadwal, atau kabari kami kalau perlu reschedule.";
+export const DEFAULT_ADMIN_MANUAL_TEMPLATE =
+  "Cek sisa sesi FortyFit: {nama} ({telepon}) {sisa_kalimat} Hubungi dia untuk memastikan jadwal latihan berikutnya.";
 
 export const DEFAULT_CUSTOMER_THANKS_TEMPLATE = [
   "Hai {nama}, terima kasih sudah datang latihan di FortyFit Studio Tabanan.",
@@ -35,7 +35,7 @@ const PLACEHOLDER_RE = /\{([a-z0-9_]+)\}/gi;
 export function asReminderKind(kind: string): ReminderKind | "unknown" {
   switch (kind) {
     case ADMIN_NOTICE_KIND:
-    case CUSTOMER_MANUAL_KIND:
+    case ADMIN_MANUAL_KIND:
     case CUSTOMER_THANKS_KIND:
     case MORNING_DIGEST_KIND:
       return kind;
@@ -44,6 +44,10 @@ export function asReminderKind(kind: string): ReminderKind | "unknown" {
   }
 }
 
+/**
+ * The recap after a finished session is the only message a customer receives.
+ * Everything about session balance goes to the studio admin.
+ */
 export function destinationForKind(
   kind: string,
   customerPhone: string,
@@ -51,10 +55,10 @@ export function destinationForKind(
 ): string {
   const resolved = asReminderKind(kind);
   switch (resolved) {
-    case CUSTOMER_MANUAL_KIND:
     case CUSTOMER_THANKS_KIND:
       return customerPhone;
     case ADMIN_NOTICE_KIND:
+    case ADMIN_MANUAL_KIND:
     case MORNING_DIGEST_KIND:
     case "unknown":
       return adminPhone;
@@ -75,8 +79,8 @@ export function reminderHeadline(input: {
     case MORNING_DIGEST_KIND:
       return "Ringkasan pagi admin";
     case ADMIN_NOTICE_KIND:
+    case ADMIN_MANUAL_KIND:
       return "Notice admin";
-    case CUSTOMER_MANUAL_KIND:
     case CUSTOMER_THANKS_KIND:
       return "WhatsApp customer";
     case "unknown":
@@ -132,10 +136,10 @@ function followUpSentence(remaining: number): string {
     : `Tinggal ${remaining}x lagi habis. Follow-up perpanjang.`;
 }
 
-function remainingSentence(remaining: number, program: string): string {
+function remainingClause(remaining: number, program: string): string {
   return remaining <= 0
-    ? "Paket sesimu sudah habis."
-    : `Sisa sesimu ${remaining} untuk program ${program}.`;
+    ? `paket ${program} sudah habis.`
+    : `sisa ${remaining} sesi program ${program}.`;
 }
 
 export function buildLowSessionMessage(input: {
@@ -165,7 +169,7 @@ export function reminderCoversRemaining(payload: string, remaining: number) {
   return payload.includes(`sisa ${remaining} sesi`);
 }
 
-export function buildCustomerManualMessage(input: {
+export function buildAdminManualMessage(input: {
   name: string;
   remaining: number;
   program: string;
@@ -173,13 +177,13 @@ export function buildCustomerManualMessage(input: {
   template?: string | null;
 }): string {
   const program = input.program || "FortyFit";
-  const sisa = remainingSentence(input.remaining, program);
+  const sisa = remainingClause(input.remaining, program);
   const hardcoded = [
-    `Hai ${input.name}, ini pengingat dari FortyFit Studio Tabanan.`,
+    `Cek sisa sesi FortyFit: ${input.name} (${input.phone || "nomor belum diisi"})`,
     sisa,
-    "Yuk datang latihan sesuai jadwal, atau kabari kami kalau perlu reschedule.",
+    "Hubungi dia untuk memastikan jadwal latihan berikutnya.",
   ].join(" ");
-  const template = normalizeStoredTemplate(input.template ?? "", DEFAULT_CUSTOMER_MANUAL_TEMPLATE);
+  const template = normalizeStoredTemplate(input.template ?? "", DEFAULT_ADMIN_MANUAL_TEMPLATE);
   if (!template) return hardcoded;
   return applyTemplate(template, {
     nama: input.name || "customer",

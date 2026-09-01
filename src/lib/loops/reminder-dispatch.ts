@@ -8,8 +8,8 @@ import {
   type WhatsAppAdapter,
 } from "@/lib/openwa/adapter";
 import {
-  CUSTOMER_MANUAL_KIND,
-  buildCustomerManualMessage,
+  ADMIN_MANUAL_KIND,
+  buildAdminManualMessage,
   destinationForKind,
 } from "@/lib/openwa/messages";
 
@@ -210,7 +210,7 @@ export async function runReminderDispatchLoop(): Promise<
   });
 }
 
-export async function enqueueCustomerManualReminder(customerId: string) {
+export async function enqueueAdminManualReminder(customerId: string) {
   const customer = await prisma.customer.findUnique({
     where: { id: customerId },
     include: { packs: { orderBy: { purchasedAt: "desc" }, take: 1 } },
@@ -227,14 +227,14 @@ export async function enqueueCustomerManualReminder(customerId: string) {
     data: {
       customerId: customer.id,
       packId: pack?.id,
-      kind: CUSTOMER_MANUAL_KIND,
+      kind: ADMIN_MANUAL_KIND,
       channel: "whatsapp",
-      payload: buildCustomerManualMessage({
+      payload: buildAdminManualMessage({
         name: customer.name,
         phone: customer.phone,
         remaining: pack?.remaining ?? 0,
         program: pack?.program ?? "FortyFit",
-        template: settings.waTplCustomerManual,
+        template: settings.waTplAdminManual,
       }),
     },
   });

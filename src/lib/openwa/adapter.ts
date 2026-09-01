@@ -1,7 +1,7 @@
 import {
+  ADMIN_MANUAL_KIND,
   ADMIN_NOTICE_KIND,
-  CUSTOMER_MANUAL_KIND,
-  buildCustomerManualMessage,
+  buildAdminManualMessage,
   buildLowSessionMessage,
   reminderCoversRemaining,
 } from "@/lib/openwa/messages";
@@ -172,9 +172,9 @@ export function getSidecarWhatsAppAdapter(): WhatsAppAdapter {
 }
 
 export {
+  ADMIN_MANUAL_KIND,
   ADMIN_NOTICE_KIND,
-  CUSTOMER_MANUAL_KIND,
-  buildCustomerManualMessage,
+  buildAdminManualMessage,
   buildLowSessionMessage,
   reminderCoversRemaining,
 };

@@ -2,33 +2,36 @@ import assert from "node:assert/strict";
 import { PrismaClient } from "@prisma/client";
 import { enqueueCustomerThanks } from "../src/lib/loops/customer-thanks";
 import { enqueueMorningDigestIfDue } from "../src/lib/loops/morning-digest";
-import { dispatchPendingReminders } from "../src/lib/loops/reminder-dispatch";
+import {
+  dispatchPendingReminders,
+  enqueueAdminManualReminder,
+} from "../src/lib/loops/reminder-dispatch";
 import { completeAppointment } from "../src/lib/loops/attendance";
 import { shouldCountDispatchAttempt } from "../src/lib/openwa/adapter";
+import { destinationForKind } from "../src/lib/openwa/messages";
 
 const prisma = new PrismaClient();
 
 async function main() {
   assert.ok(process.env.DATABASE_URL, "DATABASE_URL required");
 
-  await prisma.studioSettings.upsert({
+  // The studio's real admin phone stays untouched: it is the number that
+  // receives notices, not the sender number scanned into the sidecar.
+  const previous = await prisma.studioSettings.upsert({
     where: { id: "fortyfit" },
-    update: {
+    update: {},
+    create: { id: "fortyfit" },
+  });
+  await prisma.studioSettings.update({
+    where: { id: "fortyfit" },
+    data: {
       reminderThreshold: 2,
-      adminPhone: "6285155070866",
       autoNotifyAdmin: true,
       customerThanksEnabled: true,
       morningDigestEnabled: true,
       morningDigestTime: "09:30",
       timezone: "Asia/Makassar",
       lastMorningDigestOn: null,
-    },
-    create: {
-      id: "fortyfit",
-      reminderThreshold: 2,
-      adminPhone: "6285155070866",
-      morningDigestTime: "09:30",
-      timezone: "Asia/Makassar",
     },
   });
 
@@ -116,6 +119,25 @@ async function main() {
   });
   assert.equal(settings.lastMorningDigestOn, "2026-08-30");
   assert.equal(settings.morningDigestTime, "09:30");
+  assert.equal(settings.adminPhone, previous.adminPhone);
+
+  const manual = await enqueueAdminManualReminder(customer.id);
+  assert.ok(manual, "manual notice should be queued");
+  assert.equal(manual.reminder.kind, "admin_manual");
+  assert.match(manual.reminder.payload, /Verify Thanks/);
+  assert.doesNotMatch(manual.reminder.payload, /sesimu/i);
+  assert.equal(
+    destinationForKind(
+      manual.reminder.kind,
+      customer.phone,
+      settings.adminPhone,
+    ),
+    settings.adminPhone,
+  );
+  assert.equal(
+    destinationForKind("customer_thanks", customer.phone, settings.adminPhone),
+    customer.phone,
+  );
 
   const dispatch = await dispatchPendingReminders();
   assert.equal(dispatch.sent.length, 0);
@@ -133,6 +155,27 @@ async function main() {
     shouldCountDispatchAttempt({ sidecarReady: false, sendOk: false }),
     false,
   );
+
+  // A live sidecar drains whatever is pending, so fixtures cannot outlive
+  // the run or the studio WhatsApp would message a made-up number.
+  await prisma.reminder.deleteMany({ where: { customerId: customer.id } });
+  await prisma.reminder.deleteMany({ where: { id: digest.createdId } });
+  await prisma.workoutLog.deleteMany({ where: { customerId: customer.id } });
+  await prisma.appointment.deleteMany({ where: { customerId: customer.id } });
+  await prisma.sessionPack.deleteMany({ where: { customerId: customer.id } });
+  await prisma.customer.delete({ where: { id: customer.id } });
+  await prisma.studioSettings.update({
+    where: { id: "fortyfit" },
+    data: {
+      reminderThreshold: previous.reminderThreshold,
+      autoNotifyAdmin: previous.autoNotifyAdmin,
+      customerThanksEnabled: previous.customerThanksEnabled,
+      morningDigestEnabled: previous.morningDigestEnabled,
+      morningDigestTime: previous.morningDigestTime,
+      timezone: previous.timezone,
+      lastMorningDigestOn: previous.lastMorningDigestOn,
+    },
+  });
 
   console.log("verify-openwa-flow: ok");
 }

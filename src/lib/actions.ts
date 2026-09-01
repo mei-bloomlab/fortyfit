@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 import { GOALS, PROGRAMS } from "@/lib/engineering/rules";
 import { WIPE_CUSTOMERS_CONFIRM } from "@/lib/labels";
 import {
-  enqueueCustomerManualReminder,
+  enqueueAdminManualReminder,
   retryFailedReminder,
   skipReminder,
 } from "@/lib/loops/reminder-dispatch";
@@ -14,8 +14,8 @@ import { exercisesFromFormData, saveWorkoutLog } from "@/lib/loops/workout-log";
 import { runOpsGraph } from "@/lib/ops-graph";
 import { normalizeDigestTime } from "@/lib/openwa/digest";
 import {
+  DEFAULT_ADMIN_MANUAL_TEMPLATE,
   DEFAULT_ADMIN_NOTICE_TEMPLATE,
-  DEFAULT_CUSTOMER_MANUAL_TEMPLATE,
   DEFAULT_CUSTOMER_THANKS_TEMPLATE,
   DEFAULT_MORNING_DIGEST_TEMPLATE,
   normalizeStoredTemplate,
@@ -514,9 +514,9 @@ export async function updateWaTemplatesAction(formData: FormData) {
     readString(formData, "waTplAdminNotice"),
     DEFAULT_ADMIN_NOTICE_TEMPLATE,
   );
-  const waTplCustomerManual = normalizeStoredTemplate(
-    readString(formData, "waTplCustomerManual"),
-    DEFAULT_CUSTOMER_MANUAL_TEMPLATE,
+  const waTplAdminManual = normalizeStoredTemplate(
+    readString(formData, "waTplAdminManual"),
+    DEFAULT_ADMIN_MANUAL_TEMPLATE,
   );
   const waTplCustomerThanks = normalizeStoredTemplate(
     readString(formData, "waTplCustomerThanks"),
@@ -530,14 +530,14 @@ export async function updateWaTemplatesAction(formData: FormData) {
     where: { id: "fortyfit" },
     update: {
       waTplAdminNotice,
-      waTplCustomerManual,
+      waTplAdminManual,
       waTplCustomerThanks,
       waTplMorningDigest,
     },
     create: {
       id: "fortyfit",
       waTplAdminNotice,
-      waTplCustomerManual,
+      waTplAdminManual,
       waTplCustomerThanks,
       waTplMorningDigest,
     },
@@ -656,11 +656,11 @@ export async function restoreExerciseAction(formData: FormData) {
   refreshStudio();
 }
 
-export async function sendCustomerReminderAction(formData: FormData) {
+export async function sendAdminSessionNoticeAction(formData: FormData) {
   const customerId = readString(formData, "customerId");
   if (!customerId) return;
 
-  await enqueueCustomerManualReminder(customerId);
+  await enqueueAdminManualReminder(customerId);
   refreshStudio();
   revalidatePath(`/admin/customers/${customerId}`);
 }

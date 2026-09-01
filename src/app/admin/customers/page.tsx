@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CreateCustomerDialog } from "@/components/studio/customer-forms";
-import { SendCustomerReminderButton } from "@/components/studio/send-customer-reminder-button";
+import { SendAdminSessionNoticeButton } from "@/components/studio/send-admin-session-notice-button";
 import { EmptyState } from "@/components/studio/empty-state";
 import { PageHeader } from "@/components/studio/page-header";
 import { WipeCustomersPanel } from "@/components/studio/wipe-customers";
@@ -99,10 +99,10 @@ export default async function CustomersPage() {
                     </TableCell>
                     <TableCell className="align-top whitespace-normal">
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <SendCustomerReminderButton
+                        <SendAdminSessionNoticeButton
                           customerId={customer.id}
                           size="sm"
-                          label="Kirim reminder"
+                          label="Sisa sesi ke admin"
                         />
                         <Link
                           href={`/admin/jadwal?customer=${customer.id}`}

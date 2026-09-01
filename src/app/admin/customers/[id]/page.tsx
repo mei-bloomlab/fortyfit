@@ -16,7 +16,7 @@ import {
   CustomerProfileForm,
   SessionSlotForm,
 } from "@/components/studio/customer-forms";
-import { SendCustomerReminderButton } from "@/components/studio/send-customer-reminder-button";
+import { SendAdminSessionNoticeButton } from "@/components/studio/send-admin-session-notice-button";
 import { EmptyState } from "@/components/studio/empty-state";
 import { PageHeader } from "@/components/studio/page-header";
 import { STATUS_LABEL, STATUS_TONE } from "@/lib/labels";
@@ -47,7 +47,7 @@ export default async function CustomerDetailPage({
         description="Data client dan slot sesi. Isi tanggal plus jam per sesi, atau buka Atur Jadwal."
         actions={
           <>
-            <SendCustomerReminderButton customerId={customer.id} />
+            <SendAdminSessionNoticeButton customerId={customer.id} />
             <Button variant="outline" render={<Link href={`/admin/jadwal?customer=${customer.id}`} />}>
               Atur jadwal
             </Button>

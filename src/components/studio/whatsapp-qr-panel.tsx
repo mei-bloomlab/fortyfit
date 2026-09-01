@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,9 +11,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  RESET_SESSION_COPY,
+  RESET_SESSION_HINT,
   SIDECAR_INSTALL_COMMAND,
   classifySidecarPanel,
   sidecarHealthUrl,
+  sidecarLogoutUrl,
   sidecarQrJsonUrl,
   type SidecarPanelView,
 } from "@/lib/openwa/sidecar-browser";
@@ -66,6 +70,9 @@ export function WhatsAppQrPanel({ sidecarUrl }: { sidecarUrl: string }) {
       <CardContent className="grid gap-4">
         <StatusRow panel={panel} />
         <PanelBody panel={panel} sidecarUrl={sidecarUrl} />
+        {panel.kind === "unreachable" || panel.kind === "checking" ? null : (
+          <ResetSessionRow sidecarUrl={sidecarUrl} />
+        )}
         <p className="text-sm leading-6 text-muted-foreground">
           Dua nomor, dua tugas: QR = pengirim (nomor WA FortyFit yang menautkan
           perangkat). Nomor admin = penerima ringkasan pagi dan notice.
@@ -180,6 +187,47 @@ function PanelBody({
       return _exhaustive;
     }
   }
+}
+
+function ResetSessionRow({ sidecarUrl }: { sidecarUrl: string }) {
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function reset() {
+    setPending(true);
+    setError(null);
+    try {
+      const res = await fetch(sidecarLogoutUrl(sidecarUrl), { method: "POST" });
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        setError(body.error ?? `Sidecar menolak lepas tautan (${res.status}).`);
+      }
+    } catch {
+      setError("Sidecar tidak merespons. Cek terminal npm run openwa.");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <div className="grid gap-2 rounded-xl border border-border/70 p-3">
+      <p className="text-sm leading-6 text-muted-foreground">
+        {RESET_SESSION_HINT}
+      </p>
+      <div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={pending}
+          onClick={() => void reset()}
+        >
+          {pending ? "Melepas tautan…" : RESET_SESSION_COPY}
+        </Button>
+      </div>
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+    </div>
+  );
 }
 
 function WaitingForQr({ detail }: { detail: string }) {

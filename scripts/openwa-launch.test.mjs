@@ -4,6 +4,7 @@ import {
   BAILEYS_INSTALL,
   BAILEYS_PACKAGE,
   MISSING_BAILEYS_COPY,
+  RESET_BUTTON_COPY,
   SESSION_DIR,
   SESSION_ID,
   baileysQrToDataUrl,
@@ -12,6 +13,7 @@ import {
   resolveBaileysExports,
   shouldReconnectBaileys,
   toBaileysJid,
+  unlinkBaileysSocket,
 } from "./openwa-launch.mjs";
 
 test("sidecar session stays local and named for FortyFit", () => {
@@ -31,10 +33,37 @@ test("missing Baileys copy tells Maura the --no-save install, not Chrome", () =>
   assert.doesNotMatch(detail, /Chrome|Puppeteer|executablePath/);
 });
 
-test("logged-out copy points at the Baileys session folder", () => {
+test("logged-out copy offers the reset button before the manual folder fix", () => {
   const detail = detailFromLaunchError(new Error("logged out"));
+  assert.match(detail, new RegExp(RESET_BUTTON_COPY));
   assert.match(detail, new RegExp(SESSION_DIR));
   assert.match(detail, /\/admin\/setting/);
+});
+
+test("unlink survives a socket that already lost its connection", async () => {
+  const ended = [];
+  await unlinkBaileysSocket({
+    async logout() {
+      throw new Error("Connection Closed");
+    },
+    end(error) {
+      ended.push(error);
+    },
+  });
+  assert.deepEqual(ended, [undefined]);
+
+  const order = [];
+  await unlinkBaileysSocket({
+    async logout() {
+      order.push("logout");
+    },
+    end() {
+      order.push("end");
+    },
+  });
+  assert.deepEqual(order, ["logout", "end"]);
+
+  await unlinkBaileysSocket(null);
 });
 
 test("resolveBaileysExports accepts default or named makeWASocket", () => {

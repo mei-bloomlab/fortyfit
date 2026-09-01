@@ -7,12 +7,15 @@ import {
 } from "./openwa-http.mjs";
 import {
   MISSING_BAILEYS_COPY,
+  RESET_DETAIL,
   SESSION_DIR,
   baileysQrToDataUrl,
   createBaileysSender,
   detailFromLaunchError,
   resolveBaileysExports,
   shouldReconnectBaileys,
+  unlinkBaileysSocket,
+  wipeBaileysSession,
 } from "./openwa-launch.mjs";
 
 const port = Number(process.env.OPENWA_PORT ?? 43201);
@@ -49,10 +52,15 @@ const { baileys, toDataUrl } = await loadSidecarPackages();
 
 const state = {
   client: null,
+  sock: null,
   ready: false,
   detail: WAITING_DETAIL,
   qrDataUrl: null,
 };
+
+// Bumped on every socket start and on reset, so a retiring socket cannot
+// overwrite the state of the socket that replaced it.
+let generation = 0;
 
 function captureQr(dataUrl) {
   if (!dataUrl) return;
@@ -79,9 +87,36 @@ function markDisconnected(reason) {
   console.log(state.detail);
 }
 
+const AUTO_RESET_COOLDOWN_MS = 60_000;
+let lastAutoResetAt = 0;
+
+function canAutoReset() {
+  const now = Date.now();
+  if (now - lastAutoResetAt < AUTO_RESET_COOLDOWN_MS) return false;
+  lastAutoResetAt = now;
+  return true;
+}
+
+async function resetSession() {
+  generation += 1;
+  const retiring = state.sock;
+  state.sock = null;
+  state.client = null;
+  state.ready = false;
+  state.qrDataUrl = null;
+  state.detail = RESET_DETAIL;
+  console.log("Melepas tautan WhatsApp dan menghapus sesi lokal.");
+
+  await unlinkBaileysSocket(retiring);
+  await wipeBaileysSession(SESSION_DIR);
+  await startSocket();
+  return state.detail;
+}
+
 const server = createServer(
   createOpenWaHandler({
     getState: () => state,
+    resetSession,
     token,
     port,
   }),
@@ -98,6 +133,7 @@ server.listen(port, "127.0.0.1", () => {
 });
 
 async function startSocket() {
+  const id = (generation += 1);
   const { state: auth, saveCreds } = await baileys.useMultiFileAuthState(
     SESSION_DIR,
   );
@@ -106,9 +142,11 @@ async function startSocket() {
     printQRInTerminal: false,
     syncFullHistory: false,
   });
+  state.sock = sock;
 
   sock.ev.on("creds.update", saveCreds);
   sock.ev.on("connection.update", async (update) => {
+    if (id !== generation) return;
     try {
       if (update.qr) {
         captureQr(await baileysQrToDataUrl(update.qr, toDataUrl));
@@ -124,7 +162,13 @@ async function startSocket() {
         );
         markDisconnected(loggedOut ? "logged out" : "dropped");
         if (loggedOut) {
-          state.detail = detailFromLaunchError(new Error("logged out"));
+          // Revoked creds can never connect again. Wipe them so a fresh QR
+          // shows up instead of leaving the panel dead until someone reads this.
+          if (canAutoReset()) {
+            await resetSession();
+          } else {
+            state.detail = detailFromLaunchError(new Error("logged out"));
+          }
           return;
         }
         await new Promise((resolve) => setTimeout(resolve, 2000));

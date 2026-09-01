@@ -2,9 +2,11 @@ export const WIPE_CUSTOMERS_CONFIRM = "HAPUS SEMUA";
 
 export const KIND_LABEL: Record<string, string> = {
   low_sessions: "Notif admin · sisa sesi",
-  customer_manual: "Reminder customer (manual)",
-  customer_thanks: "Ucapan terima kasih customer",
+  admin_manual: "Notif admin · sisa sesi (manual)",
+  customer_thanks: "Rekap latihan ke customer",
   morning_digest: "Ringkasan pagi admin",
+  // Retired: this kind used to send session balance straight to the customer.
+  customer_manual: "Reminder lama ke customer",
 };
 
 export function reminderHeadline(item: {
@@ -13,7 +15,9 @@ export function reminderHeadline(item: {
 }): string {
   if (item.customer?.name) return item.customer.name;
   if (item.kind === "morning_digest") return "Ringkasan pagi admin";
-  if (item.kind === "low_sessions") return "Notice admin";
+  if (item.kind === "low_sessions" || item.kind === "admin_manual") {
+    return "Notice admin";
+  }
   return "WhatsApp";
 }
 

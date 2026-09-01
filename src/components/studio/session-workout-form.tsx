@@ -65,9 +65,8 @@ function ExerciseRows({
               type="number"
               min={1}
               max={20}
-              required
               inputMode="numeric"
-              placeholder="x"
+              placeholder="—"
               value={row.set}
               onChange={(event) => {
                 const next = [...rows];
@@ -83,9 +82,8 @@ function ExerciseRows({
               type="number"
               min={1}
               max={50}
-              required
               inputMode="numeric"
-              placeholder="xx"
+              placeholder="—"
               value={row.rep}
               onChange={(event) => {
                 const next = [...rows];
@@ -109,6 +107,10 @@ function ExerciseRows({
           )}
         </div>
       ))}
+      <p className="text-sm leading-6 text-muted-foreground">
+        Set dan Rep opsional. Kosongkan kalau tidak dicatat — nama latihan tetap
+        masuk rekap ke customer.
+      </p>
       <div>
         <Button
           type="button"

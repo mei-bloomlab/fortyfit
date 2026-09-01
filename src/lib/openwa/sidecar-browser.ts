@@ -24,6 +24,15 @@ export function sidecarQrJsonUrl(baseUrl: string): string {
   return `${baseUrl.replace(/\/$/, "")}/qr?format=json`;
 }
 
+export function sidecarLogoutUrl(baseUrl: string): string {
+  return `${baseUrl.replace(/\/$/, "")}/logout`;
+}
+
+export const RESET_SESSION_COPY = "Lepas tautan & scan ulang";
+
+export const RESET_SESSION_HINT =
+  "Pakai ini kalau QR ke-scan dari nomor yang salah. Perangkat lama dilepas dari WhatsApp, sesi lokal dihapus, lalu QR baru muncul di panel ini.";
+
 export type SidecarPanelView =
   | { kind: "unreachable" }
   | { kind: "waiting"; detail: string }

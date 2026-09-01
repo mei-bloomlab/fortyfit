@@ -243,7 +243,7 @@ function ExerciseLinesField({ exercises }: { exercises: CatalogExercise[] }) {
           key={row.key}
           className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_4.5rem_4.5rem_auto] sm:items-end"
         >
-          <Field label={index === 0 ? "Gerakan" : "Gerakan"}>
+          <Field label="Gerakan">
             <select
               name="exerciseName"
               required
@@ -271,7 +271,8 @@ function ExerciseLinesField({ exercises }: { exercises: CatalogExercise[] }) {
               type="number"
               min={1}
               max={20}
-              required
+              inputMode="numeric"
+              placeholder="—"
               value={row.set}
               onChange={(event) => {
                 const next = [...rows];
@@ -286,7 +287,8 @@ function ExerciseLinesField({ exercises }: { exercises: CatalogExercise[] }) {
               type="number"
               min={1}
               max={50}
-              required
+              inputMode="numeric"
+              placeholder="—"
               value={row.rep}
               onChange={(event) => {
                 const next = [...rows];

@@ -82,7 +82,7 @@ export default async function SettingPage() {
           <CardContent>
             <WaTemplatesForm
               adminNotice={settings.waTplAdminNotice}
-              customerManual={settings.waTplCustomerManual}
+              adminManual={settings.waTplAdminManual}
               customerThanks={settings.waTplCustomerThanks}
               morningDigest={settings.waTplMorningDigest}
             />
@@ -93,9 +93,9 @@ export default async function SettingPage() {
           <CardHeader>
             <CardTitle>WA Admin</CardTitle>
             <CardDescription>
-              Nomor penerima notice sisa sesi dan ringkasan pagi. Bukan nomor
-              pengirim yang di-scan di panel QR. Reminder ke customer tetap
-              dikirim manual dari daftar atau detail client.
+              Nomor penerima semua kabar sisa sesi: notice otomatis, ringkasan
+              pagi, dan tombol manual dari daftar client. Bukan nomor pengirim
+              yang di-scan di panel QR.
             </CardDescription>
           </CardHeader>
           <CardContent>

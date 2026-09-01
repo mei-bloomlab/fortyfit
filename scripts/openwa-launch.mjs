@@ -1,3 +1,5 @@
+import { rm } from "node:fs/promises";
+
 export const SESSION_ID = "fortyfit";
 export const SESSION_DIR = "_IGNORE_baileys";
 export const BAILEYS_PACKAGE = "@whiskeysockets/baileys";
@@ -50,6 +52,29 @@ export function createBaileysSender(sock) {
   };
 }
 
+export const RESET_BUTTON_COPY = "Lepas tautan & scan ulang";
+
+export const RESET_DETAIL =
+  "Tautan WhatsApp dilepas. QR baru sedang dibuat, tunggu beberapa detik lalu scan dari nomor yang benar.";
+
+export async function wipeBaileysSession(dir = SESSION_DIR) {
+  await rm(dir, { recursive: true, force: true });
+}
+
+export async function unlinkBaileysSocket(sock) {
+  if (!sock) return;
+  try {
+    await sock.logout();
+  } catch {
+    // Already unlinked, or never reached "open". Wiping the creds is enough.
+  }
+  try {
+    sock.end(undefined);
+  } catch {
+    // Socket was closed by logout().
+  }
+}
+
 export async function baileysQrToDataUrl(qr, toDataUrl) {
   const text = String(qr ?? "").trim();
   if (!text || typeof toDataUrl !== "function") return null;
@@ -66,7 +91,7 @@ export function detailFromLaunchError(error) {
     return MISSING_BAILEYS_COPY;
   }
   if (/logged.?out|unpaired/i.test(message)) {
-    return `Sesi terputus. Hapus folder ${SESSION_DIR} di repo, lalu npm run openwa lagi dan scan QR di /admin/setting.`;
+    return `Sesi terputus. Tekan "${RESET_BUTTON_COPY}" di /admin/setting untuk QR baru, atau hapus folder ${SESSION_DIR} di repo lalu npm run openwa lagi.`;
   }
   return message || "Gagal start sidecar WhatsApp";
 }

@@ -22,6 +22,10 @@ export function formatSets(set?: number, rep?: number, fallback?: string) {
   if (typeof set === "number" && typeof rep === "number") {
     return `${set}x${rep}`;
   }
+  // Set and Rep are optional, so keep whichever box the coach did fill
+  // instead of dropping the number from the recap.
+  if (typeof set === "number") return `${set} set`;
+  if (typeof rep === "number") return `${rep} rep`;
   return fallback;
 }
 

@@ -19,8 +19,8 @@ import { KIND_LABEL, STATUS_LABEL, STATUS_TONE, reminderHeadline } from "@/lib/l
 import { listReminders } from "@/lib/queries";
 import { getWhatsAppAdapter } from "@/lib/openwa/adapter";
 import {
+  ADMIN_MANUAL_KIND,
   ADMIN_NOTICE_KIND,
-  CUSTOMER_MANUAL_KIND,
   CUSTOMER_THANKS_KIND,
   MORNING_DIGEST_KIND,
 } from "@/lib/openwa/messages";
@@ -38,12 +38,12 @@ export default async function RemindersPage() {
   const adminNotices = reminders.filter((item) => item.kind === ADMIN_NOTICE_KIND);
   const morningDigest = reminders.filter((item) => item.kind === MORNING_DIGEST_KIND);
   const customerThanks = reminders.filter((item) => item.kind === CUSTOMER_THANKS_KIND);
-  const customerManual = reminders.filter((item) => item.kind === CUSTOMER_MANUAL_KIND);
+  const adminManual = reminders.filter((item) => item.kind === ADMIN_MANUAL_KIND);
   const known = new Set([
     ADMIN_NOTICE_KIND,
     MORNING_DIGEST_KIND,
     CUSTOMER_THANKS_KIND,
-    CUSTOMER_MANUAL_KIND,
+    ADMIN_MANUAL_KIND,
   ]);
   const other = reminders.filter((item) => !known.has(item.kind));
 
@@ -52,7 +52,7 @@ export default async function RemindersPage() {
       <PageHeader
         eyebrow="WhatsApp"
         title="Antrian reminder"
-        description="Daftar notice admin dan reminder customer. Ambang sisa sesi dan nomor WA admin ada di Setting."
+        description="Semua kabar sisa sesi masuk ke WA admin. Customer hanya menerima rekap latihan setelah sesi selesai. Ambang dan nomor admin ada di Setting."
         actions={
           <>
             <form action={scanAndDispatchAction}>
@@ -114,21 +114,21 @@ export default async function RemindersPage() {
       />
 
       <ReminderGroup
-        title="Ucapan terima kasih ke customer"
-        description="Masuk antrian setelah sesi ditandai selesai, beserta daftar gerakan kalau ada."
-        emptyTitle="Belum ada ucapan terima kasih"
+        title="Rekap latihan ke customer"
+        description="Satu-satunya pesan yang masuk ke HP customer. Dibuat setelah sesi ditandai selesai, berisi daftar gerakan hari itu."
+        emptyTitle="Belum ada rekap latihan"
         emptyDescription="Tandai sesi selesai dari jadwal atau dashboard."
         items={customerThanks}
         destination="WA customer"
       />
 
       <ReminderGroup
-        title="Reminder manual ke customer"
-        description="Terkirim ke nomor WhatsApp customer, hanya setelah tombol diklik."
-        emptyTitle="Belum ada reminder customer"
-        emptyDescription="Buka daftar atau detail client, lalu tekan “Kirim reminder” kalau mau mengingatkan mereka."
-        items={customerManual}
-        destination="WA customer"
+        title="Notif sisa sesi manual"
+        description="Sisa sesi dikirim ke WA admin, bukan ke customer. Hanya jalan setelah tombol diklik."
+        emptyTitle="Belum ada notif manual"
+        emptyDescription="Buka daftar atau detail client, lalu tekan “Sisa sesi ke admin” kalau mau diingatkan sekarang."
+        items={adminManual}
+        destination="WA admin"
       />
 
       {other.length > 0 ? (

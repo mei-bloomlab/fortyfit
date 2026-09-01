@@ -19,8 +19,8 @@ import {
   updateWaTemplatesAction,
 } from "@/lib/actions";
 import {
+  DEFAULT_ADMIN_MANUAL_TEMPLATE,
   DEFAULT_ADMIN_NOTICE_TEMPLATE,
-  DEFAULT_CUSTOMER_MANUAL_TEMPLATE,
   DEFAULT_CUSTOMER_THANKS_TEMPLATE,
   DEFAULT_MORNING_DIGEST_TEMPLATE,
   templateOrDefault,
@@ -82,12 +82,13 @@ export function NotifySettingsForm({
         />
         <span>
           <span className="block text-sm font-medium">
-            Ucapan terima kasih ke customer setelah selesai
+            Rekap latihan ke customer setelah sesi selesai
           </span>
           <span className="block text-sm leading-6 text-muted-foreground">
             Nyala: setelah tombol selesai, customer dapat WA terima kasih plus
-            daftar gerakan dari catatan sesi. Kalau tidak ada gerakan, ucapan
-            tetap dikirim tanpa daftar palsu.
+            daftar gerakan dari catatan sesi. Ini satu-satunya WA yang masuk ke
+            HP customer — sisa sesi selalu ke admin. Kalau tidak ada gerakan,
+            ucapan tetap dikirim tanpa daftar palsu.
           </span>
         </span>
       </label>
@@ -145,12 +146,12 @@ export function MorningDigestForm({
 
 export function WaTemplatesForm({
   adminNotice,
-  customerManual,
+  adminManual,
   customerThanks,
   morningDigest,
 }: {
   adminNotice: string;
-  customerManual: string;
+  adminManual: string;
   customerThanks: string;
   morningDigest: string;
 }) {
@@ -168,16 +169,16 @@ export function WaTemplatesForm({
         hints="{nama} nama customer · {telepon} nomor WA · {sisa} angka sisa sesi · {program} nama paket · {tindak} kalimat habis/tinggal Nx. Biarkan frasa sisa {sisa} sesi supaya notice tidak dobel."
       />
       <TemplateField
-        label="Pengingat manual ke customer"
-        name="waTplCustomerManual"
-        defaultValue={templateOrDefault(customerManual, DEFAULT_CUSTOMER_MANUAL_TEMPLATE)}
-        hints="{nama} · {telepon} · {sisa} angka sisa · {program} · {sisa_kalimat} kalimat sisa (habis atau masih ada)."
+        label="Notif admin — sisa sesi (tombol manual)"
+        name="waTplAdminManual"
+        defaultValue={templateOrDefault(adminManual, DEFAULT_ADMIN_MANUAL_TEMPLATE)}
+        hints="Masuk ke WA admin, bukan ke customer. {nama} · {telepon} nomor customer · {sisa} angka sisa · {program} · {sisa_kalimat} potongan kalimat sisa (habis atau masih ada)."
       />
       <TemplateField
-        label="Ucapan terima kasih setelah sesi"
+        label="Rekap latihan ke customer setelah sesi"
         name="waTplCustomerThanks"
         defaultValue={templateOrDefault(customerThanks, DEFAULT_CUSTOMER_THANKS_TEMPLATE)}
-        hints="{nama} · {gerakan} judul plus daftar gerakan dari catatan sesi, atau kosong kalau tidak ada gerakan."
+        hints="Satu-satunya teks yang dikirim ke customer. {nama} · {gerakan} judul plus daftar gerakan dari catatan sesi, atau kosong kalau tidak ada gerakan."
       />
       <TemplateField
         label="Ringkasan pagi ke admin"

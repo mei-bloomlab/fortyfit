@@ -144,7 +144,7 @@ export function scanPageHtml(port) {
 </html>`;
 }
 
-export function createOpenWaHandler({ getState, token, port }) {
+export function createOpenWaHandler({ getState, resetSession, token, port }) {
   return async function handler(req, res) {
     applyCors(req, res);
     const url = requestUrl(req, port);
@@ -210,6 +210,29 @@ export function createOpenWaHandler({ getState, token, port }) {
         "Cache-Control": "no-store",
       });
       res.end(statusSvg({ ready: Boolean(state.ready) }));
+      return;
+    }
+
+    if (req.method === "POST" && pathname === "/logout") {
+      if (typeof resetSession !== "function") {
+        json(res, 501, {
+          ok: false,
+          error: "Sidecar ini belum bisa lepas tautan. Restart npm run openwa.",
+        });
+        return;
+      }
+      try {
+        const detail = await resetSession();
+        json(res, 200, { ok: true, detail });
+      } catch (error) {
+        json(res, 500, {
+          ok: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Gagal lepas tautan WhatsApp",
+        });
+      }
       return;
     }
 

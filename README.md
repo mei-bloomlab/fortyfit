@@ -51,8 +51,17 @@ npm run db:seed
 
 Dua nomor, dua tugas:
 
-- **QR / pengirim** = nomor WhatsApp FortyFit. Scan di `/admin/setting` (panel Scan WhatsApp FortyFit) dari browser **pada Mac yang sama** dengan sidecar.
-- **Nomor admin** = penerima digest dan notice (field di Setting, misalnya 081293931134). Bukan nomor yang di-scan.
+- **QR / pengirim** = nomor WhatsApp FortyFit (6285155070866). Scan di `/admin/setting` (panel Scan WhatsApp FortyFit) dari browser **pada Mac yang sama** dengan sidecar.
+- **Nomor admin** = penerima digest dan notice (field di Setting, 6281293931134). Bukan nomor yang di-scan.
+
+Siapa menerima apa:
+
+| Pesan | Penerima | Pemicu |
+| --- | --- | --- |
+| Notif sisa sesi (otomatis) | WA admin | Sisa sesi menyentuh ambang |
+| Notif sisa sesi (manual) | WA admin | Tombol **Sisa sesi ke admin** di daftar/detail client |
+| Ringkasan pagi | WA admin | Jam di Setting, sekali sehari |
+| Rekap latihan | WA customer | Sesi ditandai selesai — satu-satunya pesan ke customer |
 
 Paket `@whiskeysockets/baileys` tidak masuk `package.json` — Vercel tidak menginstal Baileys, Chrome, atau Puppeteer. Sidecar memakai Baileys (tanpa browser). WhatsApp Web + Chrome/Puppeteer ditolak di Mac ini.
 
@@ -68,7 +77,9 @@ npm run openwa
 
 Tidak ada jendela Chrome. Buka `/admin/setting` di browser pada Mac itu. Dari HP FortyFit: WhatsApp → Setelan → Perangkat tertaut. Panel membedakan sidecar tidak terjangkau, sidecar nyala tapi QR belum terbit, QR siap, dan tersambung. HP tidak melihat `127.0.0.1` di Mac.
 
-Kalau sesi rusak atau minta scan lagi:
+Kalau salah scan (QR ke-scan dari nomor lain) atau sesi rusak, tekan **Lepas tautan & scan ulang** di panel Scan WhatsApp FortyFit pada `/admin/setting`. Perangkat lama dilepas dari WhatsApp, sesi lokal dihapus, lalu QR baru muncul di panel itu tanpa restart terminal. Kalau nomor lain menghapus perangkat dari HP-nya, sidecar juga menerbitkan QR baru sendiri.
+
+Kalau sidecar tidak bisa dibuka dari browser, cara manualnya tetap ada:
 
 ```bash
 rm -rf _IGNORE_baileys

@@ -1,16 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  ADMIN_MANUAL_KIND,
   ADMIN_NOTICE_KIND,
-  CUSTOMER_MANUAL_KIND,
   CUSTOMER_THANKS_KIND,
+  DEFAULT_ADMIN_MANUAL_TEMPLATE,
   DEFAULT_ADMIN_NOTICE_TEMPLATE,
-  DEFAULT_CUSTOMER_MANUAL_TEMPLATE,
   DEFAULT_CUSTOMER_THANKS_TEMPLATE,
   DEFAULT_MORNING_DIGEST_TEMPLATE,
   MORNING_DIGEST_KIND,
   applyTemplate,
-  buildCustomerManualMessage,
+  buildAdminManualMessage,
   buildCustomerThanksMessage,
   buildLowSessionMessage,
   buildMorningDigestMessage,
@@ -67,17 +67,29 @@ test("empty digest does not invent customer rows", () => {
   assert.doesNotMatch(payload, /• /);
 });
 
-test("destination routing keeps customer kinds off the admin phone", () => {
+test("only the post-session recap reaches the customer phone", () => {
   assert.equal(
     destinationForKind(CUSTOMER_THANKS_KIND, "0812", "62851"),
     "0812",
   );
-  assert.equal(
-    destinationForKind(CUSTOMER_MANUAL_KIND, "0812", "62851"),
-    "0812",
-  );
+  assert.equal(destinationForKind(ADMIN_MANUAL_KIND, "0812", "62851"), "62851");
   assert.equal(destinationForKind(ADMIN_NOTICE_KIND, "0812", "62851"), "62851");
   assert.equal(destinationForKind(MORNING_DIGEST_KIND, "0812", "62851"), "62851");
+  // Session balance used to go straight to the customer. Old rows must not.
+  assert.equal(destinationForKind("customer_manual", "0812", "62851"), "62851");
+});
+
+test("manual session-balance notice is worded for the admin, not the customer", () => {
+  const payload = buildAdminManualMessage({
+    name: "Calvin",
+    phone: "6287771666730",
+    remaining: 1,
+    program: "Starter",
+  });
+  assert.match(payload, /Calvin/);
+  assert.match(payload, /6287771666730/);
+  assert.match(payload, /sisa 1 sesi program Starter/);
+  assert.doesNotMatch(payload, /Hai Calvin|sesimu|kamu/i);
 });
 
 test("digest reminder has an admin headline when no customer is attached", () => {
@@ -96,6 +108,7 @@ const LOW_SESSION_INPUT = {
 
 const MANUAL_INPUT = {
   name: "Mei",
+  phone: "081238110009",
   remaining: 3,
   program: "Fat Loss",
 };
@@ -128,12 +141,12 @@ test("empty template uses today's hardcoded wording", () => {
     "Notice FortyFit: Putu Lestari (081238110005) sisa 0 sesi Fat Loss Starter. Paket sudah habis. Follow-up perpanjang.",
   );
   assert.equal(
-    buildCustomerManualMessage({ ...MANUAL_INPUT, template: "   " }),
-    "Hai Mei, ini pengingat dari FortyFit Studio Tabanan. Sisa sesimu 3 untuk program Fat Loss. Yuk datang latihan sesuai jadwal, atau kabari kami kalau perlu reschedule.",
+    buildAdminManualMessage({ ...MANUAL_INPUT, template: "   " }),
+    "Cek sisa sesi FortyFit: Mei (081238110009) sisa 3 sesi program Fat Loss. Hubungi dia untuk memastikan jadwal latihan berikutnya.",
   );
   assert.equal(
-    buildCustomerManualMessage({ name: "Mei", remaining: 0, program: "Fat Loss" }),
-    "Hai Mei, ini pengingat dari FortyFit Studio Tabanan. Paket sesimu sudah habis. Yuk datang latihan sesuai jadwal, atau kabari kami kalau perlu reschedule.",
+    buildAdminManualMessage({ ...MANUAL_INPUT, remaining: 0 }),
+    "Cek sisa sesi FortyFit: Mei (081238110009) paket Fat Loss sudah habis. Hubungi dia untuk memastikan jadwal latihan berikutnya.",
   );
   assert.equal(
     buildCustomerThanksMessage({ name: "Mei", exercises: [], template: null }),
@@ -162,11 +175,11 @@ test("default templates substitute to the same wording as empty settings", () =>
     buildLowSessionMessage({ ...LOW_SESSION_INPUT, remaining: 1 }),
   );
   assert.equal(
-    buildCustomerManualMessage({
+    buildAdminManualMessage({
       ...MANUAL_INPUT,
-      template: DEFAULT_CUSTOMER_MANUAL_TEMPLATE,
+      template: DEFAULT_ADMIN_MANUAL_TEMPLATE,
     }),
-    buildCustomerManualMessage(MANUAL_INPUT),
+    buildAdminManualMessage(MANUAL_INPUT),
   );
   assert.equal(
     buildCustomerThanksMessage({
@@ -219,11 +232,11 @@ test("custom templates fill Indonesian placeholders", () => {
     "Hai admin, Putu Lestari sisa 2 (Fat Loss Starter) 081238110005",
   );
   assert.equal(
-    buildCustomerManualMessage({
+    buildAdminManualMessage({
       ...MANUAL_INPUT,
-      template: "Halo {nama}, sisa {sisa} untuk {program}.",
+      template: "Halo admin, {nama} sisa {sisa} untuk {program}.",
     }),
-    "Halo Mei, sisa 3 untuk Fat Loss.",
+    "Halo admin, Mei sisa 3 untuk Fat Loss.",
   );
   const thanks = buildCustomerThanksMessage({
     name: "Made Ayu",
@@ -256,13 +269,13 @@ test("missing placeholder values fall back without breaking the message", () => 
     "Hai Mei {xyz}",
   );
   assert.equal(
-    buildCustomerManualMessage({
+    buildAdminManualMessage({
       name: "",
       remaining: 2,
       program: "",
-      template: "Hai {nama} / {program}",
+      template: "Cek {nama} / {program}",
     }),
-    "Hai customer / FortyFit",
+    "Cek customer / FortyFit",
   );
   assert.equal(
     buildCustomerThanksMessage({

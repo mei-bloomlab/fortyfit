@@ -9,24 +9,23 @@ import {
 } from "./workout-log";
 
 test("old workout rows without kg still parse and display", () => {
-  const parsed = parseExercises(
-    JSON.stringify([
-      { name: "Goblet squat", sets: "3x6" },
-      { name: "Bird dog", sets: "3x6/sisi" },
-    ]),
-  );
-  assert.deepEqual(
-    parsed.map((item) => ({ name: item.name, sets: item.sets, kg: item.kg })),
-    [
-      { name: "Goblet squat", sets: "3x6", kg: undefined },
-      { name: "Bird dog", sets: "3x6/sisi", kg: undefined },
-    ],
-  );
-  assert.deepEqual(workoutLinesFromJson(JSON.stringify(parsed)), [
+  const raw = JSON.stringify([
+    { name: "Goblet squat", sets: "3x6" },
+    { name: "Bird dog", sets: "3x6/sisi" },
+  ]);
+  const parsed = parseExercises(raw);
+  assert.equal(parsed.length, 2);
+  assert.equal(parsed[0]?.name, "Goblet squat");
+  assert.equal(parsed[0]?.kg, undefined);
+  assert.equal(parsed[1]?.name, "Bird dog");
+  assert.equal(parsed[1]?.kg, undefined);
+  assert.deepEqual(workoutLinesFromJson(raw), [
     { name: "Goblet squat", set: "3", rep: "6", kg: "" },
     { name: "Bird dog", set: "3", rep: "6", kg: "" },
   ]);
-  assert.equal(formatExerciseDetail(parsed[0]?.sets, parsed[0]?.kg), "3x6");
+  assert.equal(formatExerciseDetail("3x6", parsed[0]?.kg), "3x6");
+  assert.equal(formatExerciseDetail("3x6/sisi", parsed[1]?.kg), "3x6/sisi");
+  assert.doesNotMatch(JSON.stringify(parsed), /kg/);
 });
 
 test("empty kg stays optional and is omitted from stored JSON", () => {

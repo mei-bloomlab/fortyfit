@@ -18,13 +18,17 @@ import { PageHeader } from "@/components/studio/page-header";
 import { scanAndDispatchAction } from "@/lib/actions";
 import { STATUS_LABEL, STATUS_TONE, reminderHeadline } from "@/lib/labels";
 import { workoutLinesFromJson } from "@/lib/loops/workout-log";
-import { getDashboardData, listExercises } from "@/lib/queries";
+import { getDashboardData, listBusySlots, listExercises } from "@/lib/queries";
 import { formatTime } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [data, exercises] = await Promise.all([getDashboardData(), listExercises()]);
+  const [data, exercises, busy] = await Promise.all([
+    getDashboardData(),
+    listExercises(),
+    listBusySlots(),
+  ]);
 
   return (
     <div>
@@ -96,6 +100,7 @@ export default async function HomePage() {
                               startsAt={item.startsAt}
                               redirectTo="/admin"
                               size="sm"
+                              busy={busy}
                             />
                             <CancelAppointmentButton
                               appointmentId={item.id}

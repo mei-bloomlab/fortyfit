@@ -14,7 +14,7 @@ import { EmptyState } from "@/components/studio/empty-state";
 import { PageHeader } from "@/components/studio/page-header";
 import { STATUS_LABEL, STATUS_TONE } from "@/lib/labels";
 import { workoutLinesFromJson } from "@/lib/loops/workout-log";
-import { getAppointment, listExercises } from "@/lib/queries";
+import { getAppointment, listBusySlots, listExercises } from "@/lib/queries";
 import { formatDateTime } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
@@ -28,9 +28,10 @@ export default async function AppointmentPage({
 }) {
   const { appointmentId } = await params;
   const { month } = await searchParams;
-  const [appointment, exercises] = await Promise.all([
+  const [appointment, exercises, busy] = await Promise.all([
     getAppointment(appointmentId),
     listExercises(),
+    listBusySlots(),
   ]);
   if (!appointment) notFound();
 
@@ -93,6 +94,7 @@ export default async function AppointmentPage({
               redirectTo={calendarHref}
               exercises={exercises}
               startsAt={appointment.startsAt}
+              busy={busy}
               initialLines={workoutLinesFromJson(appointment.workout?.exercisesJson)}
             />
           ) : appointment.status === "completed" ? (

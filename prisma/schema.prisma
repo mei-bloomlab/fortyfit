@@ -40,6 +40,7 @@ model Customer {
   appointments Appointment[]
   workouts     WorkoutLog[]
   reminders    Reminder[]
+  events       AppointmentEvent[]
 
   @@index([phone])
   @@index([status])
@@ -108,11 +109,32 @@ model Appointment {
 
   workout   WorkoutLog?
   reminders Reminder[]
+  events    AppointmentEvent[]
 
   @@index([startsAt])
   @@index([customerId])
   @@index([status])
   @@index([packId, slot])
+}
+
+/// Append-only log of cancels and moves, so the studio can see who keeps
+/// changing plans at the last minute.
+model AppointmentEvent {
+  id            String      @id @default(cuid())
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  customerId    String
+  customer      Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  kind          String
+  fromStartsAt  DateTime?
+  toStartsAt    DateTime?
+  hoursNotice   Int?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([customerId, createdAt])
+  @@index([appointmentId])
+  @@index([kind])
 }
 
 model WorkoutLog {

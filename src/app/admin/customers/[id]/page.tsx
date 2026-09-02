@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CancelAppointmentButton } from "@/components/studio/appointment-actions";
+import { AppointmentHistory } from "@/components/studio/appointment-history";
 import {
   AddPackDialog,
   CompleteSessionDialog,
@@ -141,6 +142,8 @@ export default async function CustomerDetailPage({
           </Card>
         );
       })}
+
+      <AppointmentHistory events={customer.events} />
 
       <div className="mb-6">
         <AddPackDialog customerId={customer.id} packages={packages} />

@@ -1,6 +1,6 @@
 import { PageHeader } from "@/components/studio/page-header";
 import { ScheduleWorkspace } from "@/components/studio/schedule-workspace";
-import { listExercises, listScheduleCustomers } from "@/lib/queries";
+import { listBusySlots, listExercises, listScheduleCustomers } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -10,9 +10,10 @@ export default async function SchedulePage({
   searchParams: Promise<{ customer?: string; mode?: string }>;
 }) {
   const { customer, mode } = await searchParams;
-  const [customers, exercises] = await Promise.all([
+  const [customers, exercises, busy] = await Promise.all([
     listScheduleCustomers(),
     listExercises(),
+    listBusySlots(),
   ]);
 
   return (
@@ -26,6 +27,7 @@ export default async function SchedulePage({
       <ScheduleWorkspace
         customers={customers}
         exercises={exercises}
+        busy={busy}
         initialCustomerId={customer}
         initialMode={mode === "time" ? "time" : "customer"}
       />

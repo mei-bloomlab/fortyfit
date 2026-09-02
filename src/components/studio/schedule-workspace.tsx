@@ -8,8 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Field } from "@/components/studio/field";
 import { EmptyState } from "@/components/studio/empty-state";
 import { AppointmentActions } from "@/components/studio/appointment-actions";
+import { ClashNotice } from "@/components/studio/clash-notice";
 import { scheduleOpenSlotAction } from "@/lib/actions";
 import type { ScheduleCustomer } from "@/lib/queries";
+import { findClashes, type BusySlot } from "@/lib/scheduling";
 import type { CatalogExercise } from "@/lib/studio-catalog";
 import { formatTime, toLocalInputValue } from "@/lib/time";
 import { cn } from "@/lib/utils";
@@ -24,11 +26,13 @@ function matchesQuery(customer: ScheduleCustomer, query: string) {
 export function ScheduleWorkspace({
   customers,
   exercises = [],
+  busy = [],
   initialCustomerId,
   initialMode,
 }: {
   customers: ScheduleCustomer[];
   exercises?: CatalogExercise[];
+  busy?: BusySlot[];
   initialCustomerId?: string;
   initialMode?: Mode;
 }) {
@@ -94,6 +98,7 @@ export function ScheduleWorkspace({
               <CustomerScheduleForm
                 customer={selected}
                 exercises={exercises}
+                busy={busy}
                 startsAt={startsAt}
                 onStartsAtChange={setStartsAt}
               />
@@ -118,6 +123,9 @@ export function ScheduleWorkspace({
             <p className="mt-2 text-sm text-muted-foreground">
               Berikutnya pilih customer yang sesinya masih sisa dan belum dijadwalkan semua.
             </p>
+            <div className="mt-2">
+              <ClashNotice clashes={findClashes(startsAt, busy)} />
+            </div>
           </div>
           <Field label="Cari yang sesinya masih sisa">
             <Input
@@ -236,15 +244,18 @@ function CustomerList({
 function CustomerScheduleForm({
   customer,
   exercises,
+  busy,
   startsAt,
   onStartsAtChange,
 }: {
   customer: ScheduleCustomer;
   exercises: CatalogExercise[];
+  busy: BusySlot[];
   startsAt: string;
   onStartsAtChange: (value: string) => void;
 }) {
   const canBook = customer.remaining > 0 && customer.openSlots > 0;
+  const clashes = findClashes(startsAt, busy);
 
   return (
     <div className="space-y-4">
@@ -277,6 +288,7 @@ function CustomerScheduleForm({
               onChange={(event) => onStartsAtChange(event.target.value)}
             />
           </Field>
+          <ClashNotice clashes={clashes} />
           <Button type="submit">Jadwalkan sesi berikutnya</Button>
         </form>
       ) : (
@@ -318,6 +330,7 @@ function CustomerScheduleForm({
                 customerName={customer.name}
                 exercises={exercises}
                 startsAt={item.startsAt}
+                busy={busy}
               />
             </div>
           ))}

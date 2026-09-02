@@ -2,6 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import {
+  recordAppointmentCancelled,
+  recordAppointmentMoved,
+} from "@/lib/appointment-events";
 import { prisma } from "@/lib/db";
 import { GOALS, PROGRAMS } from "@/lib/engineering/rules";
 import { WIPE_CUSTOMERS_CONFIRM } from "@/lib/labels";
@@ -209,14 +213,21 @@ export async function saveSessionSlotAction(formData: FormData) {
         status: appointment.status === "completed" ? "completed" : "unscheduled",
       },
     });
+    if (appointment.startsAt && appointment.status !== "completed") {
+      await recordAppointmentCancelled(appointment);
+    }
   } else {
+    const nextStartsAt = parseStudioDateTime(startsAt);
     await prisma.appointment.update({
       where: { id: appointmentId },
       data: {
-        startsAt: parseStudioDateTime(startsAt),
+        startsAt: nextStartsAt,
         status: appointment.status === "completed" ? "completed" : "scheduled",
       },
     });
+    if (appointment.status !== "completed") {
+      await recordAppointmentMoved(appointment, nextStartsAt);
+    }
   }
 
   refreshStudio();
@@ -380,6 +391,9 @@ export async function cancelAppointmentAction(formData: FormData) {
       status: "unscheduled",
     },
   });
+  if (appointment.startsAt) {
+    await recordAppointmentCancelled(appointment);
+  }
 
   refreshStudio();
   revalidatePath("/admin/jadwal");
@@ -409,6 +423,7 @@ export async function rescheduleAppointmentAction(formData: FormData) {
     where: { id: appointmentId },
     data: target,
   });
+  await recordAppointmentMoved(appointment, target.startsAt);
 
   refreshStudio();
   revalidatePath(`/admin/customers/${appointment.customerId}`);

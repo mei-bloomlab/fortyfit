@@ -5,6 +5,7 @@ import {
   DEFAULT_PACKAGES,
   PACKAGE_SESSION_DEFAULTS,
 } from "@/lib/studio-catalog";
+import type { BusySlot } from "@/lib/scheduling";
 import { startOfStudioDay } from "@/lib/time";
 
 export type { CatalogExercise, CatalogPackage } from "@/lib/studio-catalog";
@@ -144,8 +145,31 @@ export async function getCustomer(id: string) {
       },
       workouts: { orderBy: { performedAt: "desc" } },
       reminders: { orderBy: { createdAt: "desc" }, take: 8 },
+      events: { orderBy: { createdAt: "desc" }, take: 12 },
     },
   });
+}
+
+/** Every session still on the calendar from today onward, for clash warnings. */
+export async function listBusySlots(): Promise<BusySlot[]> {
+  const rows = await prisma.appointment.findMany({
+    where: { status: "scheduled", startsAt: { gte: startOfStudioDay() } },
+    include: { customer: { select: { name: true } } },
+    orderBy: { startsAt: "asc" },
+  });
+
+  return rows.flatMap((row) =>
+    row.startsAt
+      ? [
+          {
+            id: row.id,
+            name: row.customer.name,
+            startsAt: row.startsAt.toISOString(),
+            durationMin: row.durationMin,
+          },
+        ]
+      : [],
+  );
 }
 
 export type ScheduleCustomer = {

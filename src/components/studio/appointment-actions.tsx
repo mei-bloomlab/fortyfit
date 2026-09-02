@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { ActionPanel } from "@/components/studio/action-panel";
+import { ClashNotice } from "@/components/studio/clash-notice";
 import { Field } from "@/components/studio/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +13,7 @@ import {
   rescheduleAppointmentAction,
 } from "@/lib/actions";
 import type { WorkoutLineDraft } from "@/lib/loops/workout-log";
+import { findClashes, type BusySlot } from "@/lib/scheduling";
 import type { CatalogExercise } from "@/lib/studio-catalog";
 import { toLocalInputValue } from "@/lib/time";
 
@@ -58,12 +61,17 @@ export function RescheduleAppointmentPanel({
   startsAt,
   redirectTo = "/admin/jadwal",
   size = "default",
+  busy = [],
 }: {
   appointmentId: string;
   startsAt?: Date | string | null;
   redirectTo?: string;
   size?: "default" | "sm";
+  busy?: BusySlot[];
 }) {
+  const [picked, setPicked] = useState(startsAt ? toLocalInputValue(startsAt) : "");
+  const clashes = findClashes(picked, busy, { ignoreId: appointmentId });
+
   return (
     <ActionPanel
       label="Ubah jadwal"
@@ -80,9 +88,11 @@ export function RescheduleAppointmentPanel({
             name="startsAt"
             type="datetime-local"
             required
-            defaultValue={startsAt ? toLocalInputValue(startsAt) : ""}
+            value={picked}
+            onChange={(event) => setPicked(event.target.value)}
           />
         </Field>
+        <ClashNotice clashes={clashes} />
         <Button type="submit">Pindahkan sesi</Button>
       </form>
     </ActionPanel>
@@ -96,10 +106,12 @@ export function AppointmentActions({
   exercises = [],
   initialLines = [],
   startsAt,
+  busy = [],
 }: {
   appointmentId: string;
   customerId: string;
   startsAt?: Date | string | null;
+  busy?: BusySlot[];
   customerName?: string;
   redirectTo?: string;
   showNoteForm?: boolean;
@@ -120,6 +132,7 @@ export function AppointmentActions({
           appointmentId={appointmentId}
           startsAt={startsAt}
           redirectTo={redirectTo}
+          busy={busy}
         />
         <CancelAppointmentButton
           appointmentId={appointmentId}

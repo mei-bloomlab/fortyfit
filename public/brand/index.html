@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FORTYFIT brand kit</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --paper: #f4f0e8;
+        --black: #1c1a17;
+        --olive: #3a4630;
+        --muted: #7a7368;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--black);
+        font: 16px/1.5 Outfit, Avenir Next, Avenir, Helvetica Neue, sans-serif;
+      }
+      main { max-width: 920px; margin: 0 auto; padding: 48px 24px 80px; }
+      h1 { font-weight: 560; letter-spacing: 0.04em; font-size: 14px; text-transform: uppercase; color: var(--muted); }
+      h2 { font-weight: 560; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 48px 0 16px; }
+      .hero { display: flex; align-items: center; gap: 28px; margin: 32px 0 16px; }
+      .hero svg { width: 96px; height: 96px; }
+      .word { font-size: 48px; font-weight: 560; letter-spacing: 0.02em; }
+      .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; }
+      figure {
+        margin: 0;
+        padding: 24px;
+        background: #fff;
+        border: 1px solid #e4ddd2;
+      }
+      figure.dark { background: var(--black); }
+      figure svg { width: 96px; height: 96px; display: block; }
+      figcaption { margin-top: 12px; font-size: 12px; color: var(--muted); }
+      figure.dark figcaption { color: #c4b8a5; }
+      .lockup { display: flex; align-items: center; gap: 16px; padding: 28px; background: #fff; border: 1px solid #e4ddd2; }
+      .lockup svg { width: 56px; height: 56px; }
+      .lockup span { font-size: 32px; font-weight: 560; }
+      .previews img { width: 100%; height: auto; display: block; margin: 16px 0; background: #fff; border: 1px solid #e4ddd2; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>FORTYFIT / brand kit</h1>
+      <div class="hero">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <g fill="#1C1A17">
+            <rect x="14" y="22" width="72" height="18" />
+            <rect x="32" y="40" width="18" height="38" />
+          </g>
+        </svg>
+        <div class="word">fortyfit</div>
+      </div>
+
+      <h2>Cantilever mark</h2>
+      <div class="row">
+        <figure>
+          <svg viewBox="0 0 100 100"><g fill="#1C1A17"><rect x="14" y="22" width="72" height="18"/><rect x="32" y="40" width="18" height="38"/></g></svg>
+          <figcaption>Black on paper</figcaption>
+        </figure>
+        <figure class="dark">
+          <svg viewBox="0 0 100 100"><g fill="#FFFFFF"><rect x="14" y="22" width="72" height="18"/><rect x="32" y="40" width="18" height="38"/></g></svg>
+          <figcaption>Reverse</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 100 100"><g fill="#3A4630"><rect x="14" y="22" width="72" height="18"/><rect x="32" y="40" width="18" height="38"/></g></svg>
+          <figcaption>Olive</figcaption>
+        </figure>
+      </div>
+
+      <h2>Horizontal lockup</h2>
+      <div class="lockup">
+        <svg viewBox="0 0 100 100"><g fill="#1C1A17"><rect x="14" y="22" width="72" height="18"/><rect x="32" y="40" width="18" height="38"/></g></svg>
+        <span>fortyfit</span>
+      </div>
+
+      <h2>Alternates</h2>
+      <div class="row">
+        <figure>
+          <svg viewBox="0 0 100 100"><g fill="#1C1A17"><rect x="16" y="20" width="68" height="16"/><rect x="38" y="36" width="24" height="34"/><rect x="26" y="70" width="18" height="10"/><rect x="56" y="70" width="18" height="10"/></g></svg>
+          <figcaption>Stance</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 100 100"><path fill="#1C1A17" d="M34 20 H66 L84 80 H62 V68 H38 V80 H16 Z"/></svg>
+          <figcaption>Keystone</figcaption>
+        </figure>
+      </div>
+
+      <h2>Preview boards</h2>
+      <div class="previews">
+        <img src="/brand/previews/fortyfit_cantilever_mark.png" alt="Cantilever mark" />
+        <img src="/brand/previews/fortyfit_cantilever_lockup.png" alt="Cantilever lockup" />
+        <img src="/brand/previews/fortyfit_cantilever_stacked.png" alt="Cantilever stacked" />
+        <img src="/brand/previews/fortyfit_cantilever_mark_reverse.png" alt="Cantilever reverse" />
+        <img src="/brand/previews/fortyfit_cantilever_lockup_reverse.png" alt="Cantilever reverse lockup" />
+        <img src="/brand/previews/fortyfit_cantilever_lockup_olive.png" alt="Cantilever olive lockup" />
+        <img src="/brand/previews/fortyfit_wordmark.png" alt="Wordmark" />
+        <img src="/brand/previews/fortyfit_stance_mark.png" alt="Stance mark" />
+        <img src="/brand/previews/fortyfit_keystone_mark.png" alt="Keystone mark" />
+      </div>
+    </main>
+  </body>
+</html>

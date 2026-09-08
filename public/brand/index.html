@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FORTYFIT brand kit</title>
+    <style>
+      :root {
+        --paper: #f3eee4;
+        --black: #1c1a17;
+        --olive: #3a4630;
+        --muted: #7a7368;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--black);
+        font: 16px/1.5 Outfit, Avenir Next, Avenir, Helvetica Neue, sans-serif;
+      }
+      main { max-width: 880px; margin: 0 auto; padding: 48px 24px 80px; }
+      h1 { font-weight: 560; letter-spacing: 0.08em; font-size: 12px; text-transform: uppercase; color: var(--muted); }
+      h2 { font-weight: 560; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 40px 0 14px; }
+      .hero { display: flex; align-items: center; gap: 24px; margin: 28px 0 8px; }
+      .hero svg { width: 88px; height: 88px; }
+      .word { font-size: 44px; font-weight: 560; letter-spacing: 0.01em; }
+      .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+      @media (max-width: 640px) { .row { grid-template-columns: 1fr; } }
+      figure {
+        margin: 0;
+        padding: 28px;
+        background: #fff;
+        border: 1px solid #e4ddd2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      figure.dark { background: var(--black); }
+      figure svg { width: 88px; height: 88px; }
+      figcaption { margin-top: 14px; font-size: 12px; color: var(--muted); }
+      figure.dark figcaption { color: #c4b8a5; }
+      .previews img { width: 100%; height: auto; display: block; margin: 0 0 16px; background: #fff; border: 1px solid #e4ddd2; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>FORTYFIT / brand kit</h1>
+      <div class="hero">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <g fill="none" stroke="#1C1A17" stroke-width="7.2" stroke-linecap="square" stroke-linejoin="miter">
+            <path d="M20 27 L47 55 H22" />
+            <path d="M47 25 V79" />
+            <path d="M47 35 A 19 22.5 0 1 1 47 77" />
+          </g>
+        </svg>
+        <div class="word">fortyfit</div>
+      </div>
+
+      <h2>Marks</h2>
+      <div class="row">
+        <figure>
+          <svg viewBox="0 0 100 100">
+            <g fill="none" stroke="#1C1A17" stroke-width="7.2" stroke-linecap="square" stroke-linejoin="miter">
+              <path d="M20 27 L47 55 H22" />
+              <path d="M47 25 V79" />
+              <path d="M47 35 A 19 22.5 0 1 1 47 77" />
+            </g>
+          </svg>
+          <figcaption>40 ligature</figcaption>
+        </figure>
+        <figure class="dark">
+          <svg viewBox="0 0 100 100">
+            <g fill="none" stroke="#F3EEE4" stroke-width="7.2" stroke-linecap="square" stroke-linejoin="miter">
+              <path d="M20 27 L47 55 H22" />
+              <path d="M47 25 V79" />
+              <path d="M47 35 A 19 22.5 0 1 1 47 77" />
+            </g>
+          </svg>
+          <figcaption>Reverse</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 100 100">
+            <g fill="none" stroke="#3A4630" stroke-width="6.2" stroke-linecap="square" stroke-linejoin="miter">
+              <circle cx="50" cy="50" r="36" />
+              <path d="M38 34 L52 54 H40" />
+              <path d="M52 32 V70" />
+            </g>
+          </svg>
+          <figcaption>Seal</figcaption>
+        </figure>
+      </div>
+
+      <h2>Boards</h2>
+      <div class="previews">
+        <img src="/brand/previews/fortyfit_v2_40_ligature_mark.png" alt="40 ligature mark" />
+        <img src="/brand/previews/fortyfit_v2_lockup.png" alt="40 ligature lockup" />
+        <img src="/brand/previews/fortyfit_v2_stacked.png" alt="Stacked lockup" />
+        <img src="/brand/previews/fortyfit_v2_40_ligature_reverse.png" alt="Reverse mark" />
+        <img src="/brand/previews/fortyfit_v2_lockup_reverse.png" alt="Reverse lockup" />
+        <img src="/brand/previews/fortyfit_v2_wordmark.png" alt="Wordmark" />
+        <img src="/brand/previews/fortyfit_v2_seal_mark.png" alt="Seal mark" />
+        <img src="/brand/previews/fortyfit_v2_seal_lockup_olive.png" alt="Olive seal lockup" />
+        <img src="/brand/previews/fortyfit_v2_ff_mark.png" alt="ff monogram" />
+        <img src="/brand/previews/fortyfit_v2_ff_lockup.png" alt="ff lockup" />
+      </div>
+    </main>
+  </body>
+</html>

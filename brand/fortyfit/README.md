@@ -1,15 +1,18 @@
 # FORTYFIT brand kit
 
-Primary mark: **Cantilever** — a load-bearing beam on an offset support. It reads as quiet strength first, and as a `4` on a second look.
+Primary mark: **40 ligature** — an open `4` fused to a `0` that shares the same stem.
 
-Alternates: **Stance** (planted human / pillar) and **Keystone** (the piece that holds).
+Alternates: circular **seal** (4 inside a ring) and **ff** monogram.
+
+Wordmark is always lowercase `fortyfit`, medium weight, not hairline.
 
 ## Files
 
-- `svg/` — marks and lockups, one color each (`black`, `white`, `olive`, `navy`)
-- `png/` — raster exports and presentation boards
-
-Wordmark is always lowercase `fortyfit`.
+- `svg/mark-40.svg` — primary
+- `svg/mark-seal.svg`
+- `svg/mark-ff.svg`
+- Site copies: `public/brand/mark.svg`
+- Preview boards: `public/brand/previews/fortyfit_v2_*.png`
 
 ## Color
 
@@ -17,10 +20,6 @@ Wordmark is always lowercase `fortyfit`.
 | --- | --- |
 | Foundation Black | `#1C1A17` |
 | Deep Olive | `#3A4630` |
-| Midnight Navy | `#1C2A3A` |
-| Warm Clay | `#8B6E4E` |
-| Paper | `#F4F0E8` |
+| Paper | `#F3EEE4` |
 
-Use one color at a time. No gradients.
-
-Regenerate rasters with `python3 scripts/render-fortyfit-brand.py`.
+One color at a time. No gradients.

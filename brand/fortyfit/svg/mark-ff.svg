@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="FORTYFIT">
+  <title>FORTYFIT</title>
+  <g fill="none" stroke="#1C1A17" stroke-width="7" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M28 78 V30 Q28 22 40 22 H52" />
+    <path d="M24 48 H54" />
+    <path d="M58 78 V30 Q58 22 70 22 H82" />
+    <path d="M54 48 H84" />
+  </g>
+</svg>
